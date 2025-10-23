@@ -135,7 +135,6 @@ ScreenshotResult ScreenshotWayland::captureRegion(int x, int y, int width, int h
     //
     // stbi_write_png("/tmp/johnny-region.png", width, height, channels, cropped.data(), width * channels);
 
-
     stbi_image_free(decoded);
 
     ScreenshotResult region;
