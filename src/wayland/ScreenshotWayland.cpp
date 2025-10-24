@@ -144,7 +144,3 @@ ScreenshotResult ScreenshotWayland::captureRegion(int x, int y, int width, int h
     region.channels = channels;
     return region;
 }
-
-std::string ScreenshotWayland::backendName() const {
-    return "wayland";
-}

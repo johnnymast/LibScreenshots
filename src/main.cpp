@@ -8,8 +8,8 @@
 
 #include <fstream>
 #include <iostream>
-
-using namespace LibScreenshots;
+//
+// using namespace LibScreenshots;
 
 
 

@@ -9,10 +9,10 @@ namespace LibScreenshots {
 
     class ScreenshotWayland : public IScreenshotBackend {
     public:
-        ScreenshotWayland();
+        // ScreenshotWayland();
         ScreenshotResult captureScreen() override;
         ScreenshotResult captureRegion(int x, int y, int width, int height)  override;
-        std::string backendName() const override;
+        // std::string backendName() const override;
     };
 
 } // namespace LibScreenshots

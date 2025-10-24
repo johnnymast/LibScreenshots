@@ -12,6 +12,6 @@ namespace LibScreenshots {
 
         virtual ScreenshotResult captureScreen() = 0;
         virtual ScreenshotResult captureRegion(int x, int y, int width, int height) = 0;
-        [[nodiscard]] virtual std::string backendName() const = 0;
+        // [[nodiscard]] virtual std::string backendName() const = 0;
     };
 }
