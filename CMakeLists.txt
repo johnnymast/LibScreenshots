@@ -20,6 +20,7 @@ option(WAYLAND "Enable Wayland support via DBus portal" ON)
 add_library(${PROJECT_NAME} SHARED
         src/main.cpp
 
+        include/LibScreenshots/internals/platform_dispatch.hpp
         include/LibScreenshots/IScreenshotBackend.hpp
         include/LibScreenshots/ScreenshotResult.hpp
 
@@ -31,6 +32,8 @@ add_library(${PROJECT_NAME} SHARED
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+target_link_libraries(LibScreenshots PUBLIC LibGraphics)
 
 # Platform-specific dependencies
 if(IS_WINDOWS)

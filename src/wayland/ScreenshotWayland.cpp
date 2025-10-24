@@ -1,9 +1,8 @@
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-
 #include "ScreenshotWayland.hpp"
-#include "modules/stb_image_write.h"
-#include "modules/stb_image.h"
+#include "LibScreenshots/ScreenshotResult.hpp"
+
+#include <glib.h>
+#include <gio/gio.h>
 
 #include <stdexcept>
 #include <fstream>
@@ -14,6 +13,7 @@
 
 namespace fs = std::filesystem;
 using namespace LibScreenshots;
+using LibGraphics::Image;
 
 ScreenshotResult ScreenshotWayland::captureScreen() {
     GError *error = nullptr;
@@ -49,7 +49,6 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     g_variant_get(result, "(@o)", &child);
     const gchar *request_path = g_variant_get_string(child, nullptr);
 
-    // Set up result container and main loop
     ScreenshotResult resultData;
     GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
 
@@ -80,11 +79,11 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
             if (path.rfind("file://", 0) == 0) path = path.substr(7);
 
             int retries = 10;
-            while (retries-- > 0 && !fs::exists(path)) {
+            while (retries-- > 0 && !std::filesystem::exists(path)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
 
-            if (!fs::exists(path)) {
+            if (!std::filesystem::exists(path)) {
                 g_main_loop_quit(context->second);
                 return;
             }
@@ -96,10 +95,14 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
             }
 
             std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), {});
-            context->first->pixels = std::move(buffer);
-            context->first->width = 0;
-            context->first->height = 0;
-            context->first->channels = 0;
+            try {
+                context->first->image = Image::load_from_memory(buffer);
+                context->first->width = context->first->image.width;
+                context->first->height = context->first->image.height;
+                context->first->channels = context->first->image.channels;
+            } catch (const std::exception& e) {
+                std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
+            }
 
             g_main_loop_quit(context->second);
         },
@@ -119,28 +122,13 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
 ScreenshotResult ScreenshotWayland::captureRegion(int x, int y, int width, int height) {
     ScreenshotResult full = captureScreen();
 
-    int w, h, channels;
-    unsigned char *decoded = stbi_load_from_memory(
-        full.pixels.data(), full.pixels.size(), &w, &h, &channels, 0
-    );
-    if (!decoded) throw std::runtime_error("Failed to decode PNG");
-
-    std::vector<unsigned char> cropped;
-    for (int row = y; row < y + height; ++row) {
-        for (int col = x; col < x + width; ++col) {
-            int src_index = (row * w + col) * channels;
-            cropped.insert(cropped.end(), decoded + src_index, decoded + src_index + channels);
-        }
-    }
-    //
-    // stbi_write_png("/tmp/johnny-region.png", width, height, channels, cropped.data(), width * channels);
-
-    stbi_image_free(decoded);
+    Image cropped = full.image.crop(x, y, width, height);
 
     ScreenshotResult region;
-    region.pixels = std::move(cropped);
-    region.width = width;
-    region.height = height;
-    region.channels = channels;
+    region.image = std::move(cropped);
+    region.width = region.image.width;
+    region.height = region.image.height;
+    region.channels = region.image.channels;
+
     return region;
 }
