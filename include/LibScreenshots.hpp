@@ -1,7 +1,9 @@
 #pragma once
 
+#include "LibScreenshots/internals/platform_dispatch.hpp"
 #include "LibScreenshots/internals/export.hpp"
 #include "LibScreenshots/ScreenshotResult.hpp"
+
 
 using LibScreenshots::ScreenshotResult;
 
