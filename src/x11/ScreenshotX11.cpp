@@ -11,8 +11,11 @@
 #include <iostream>
 #include <utility>
 
+#include "LibGraphics/utils/Converter.hpp"
+
 using namespace LibScreenshots;
 using LibGraphics::Image;
+using LibGraphics::Utils::Converter;
 
 std::pair<int, int> GetScreenResolution() {
     Display* display = XOpenDisplay(nullptr);
@@ -55,62 +58,75 @@ std::pair<int, int> GetScreenResolution() {
 }
 
 ScreenshotResult ScreenshotX11::captureScreen() {
-
     auto [width, height] = GetScreenResolution();
-    int x, y = 0;
+    int x = 0, y = 0;
 
-    // Display *display = XOpenDisplay(nullptr);
-    //
-    // if (!display) {
-    //     fprintf(stderr, "Unable to open display\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    //
-    // Window root = DefaultRootWindow(display);
-    // XImage *image = XGetImage(display, root, x, y, width, height, AllPlanes, ZPixmap);
-    //
-    // if (!image) {
-    //     XCloseDisplay(display);
-    //     throw std::runtime_error("Failed to capture image");
-    // }
+    if (width <= 0 || height <= 0)
+        throw std::invalid_argument("Width and height must be positive");
 
-    printf("Screen resolution %dx%d\n", width, height);
+    if (x < 0 || y < 0)
+        throw std::invalid_argument("Coordinates must be non-negative");
 
+    Display* display = XOpenDisplay(nullptr);
+    if (!display)
+        throw std::runtime_error("Failed to open X11 display");
 
+    ScreenshotResult resultImage;
 
+    try {
+        Window root = XRootWindow(display, XDefaultScreen(display));
+        XImage* xImage = XGetImage(display, root, x, y, width, height, AllPlanes, ZPixmap);
 
+        if (!xImage)
+            throw std::runtime_error("Failed to capture screenshot");
 
+        int channels = xImage->bits_per_pixel / 8;
+        int expected_stride = width * channels;
 
-    //
-    // cv::Mat mat = cv::Mat(height, width, CV_8UC4, image->data);
-    // cv::cvtColor(mat, mat, cv::COLOR_BGRA2BGR);
-    //
-    // XDestroyImage(image);
-    // XCloseDisplay(display);
+        cv::Mat resultMat;
 
-    return ScreenshotResult();
+        if (xImage->bytes_per_line != expected_stride) {
+            std::cerr << "Warning: unexpected stride, copying row-by-row\n";
+            resultMat = cv::Mat(height, width, channels == 4 ? CV_8UC4 : CV_8UC3);
+            for (int row = 0; row < height; ++row) {
+                memcpy(resultMat.ptr(row), xImage->data + row * xImage->bytes_per_line, expected_stride);
+            }
+        } else {
+            resultMat = cv::Mat(height, width, channels == 4 ? CV_8UC4 : CV_8UC3, xImage->data, xImage->bytes_per_line).clone();
+        }
+
+        cv::Mat bgrMat;
+        if (channels == 4) {
+            cv::cvtColor(resultMat, bgrMat, cv::COLOR_BGRA2BGR);
+        } else {
+            bgrMat = resultMat;
+        }
+
+        resultImage.image = Converter::MatToImage(bgrMat);
+        resultImage.width = resultImage.image.width;
+        resultImage.height = resultImage.image.height;
+        resultImage.channels = resultImage.image.channels;
+
+        XDestroyImage(xImage);
+        XCloseDisplay(display);
+    } catch (...) {
+        XCloseDisplay(display);
+        throw;
+    }
+
+    return resultImage;
 }
 
 ScreenshotResult ScreenshotX11::captureRegion(const int x, const int y, const int width, const int height) {
-    // Display *display = XOpenDisplay(nullptr);
-    // if (display == nullptr) {
-    //     fprintf(stderr, "Unable to open display\n");
-    //     exit(EXIT_FAILURE);
-    // }
-    // Window root = DefaultRootWindow(display);
-    // XImage *image = XGetImage(display, root, x, y, width, height, AllPlanes, ZPixmap);
-    //
-    // if (image == nullptr) {
-    //     XCloseDisplay(display);
-    //     throw std::runtime_error("Failed to capture image");
-    // }
-    //
-    // cv::Mat mat = cv::Mat(height, width, CV_8UC4, image->data);
-    // cv::cvtColor(mat, mat, cv::COLOR_BGRA2BGR);
-    //
-    // XDestroyImage(image);
+    const ScreenshotResult full = captureScreen();
 
-    captureScreen();
-    return ScreenshotResult();
+    Image cropped = full.image.crop(x, y, width, height);
 
+    ScreenshotResult region;
+    region.image = std::move(cropped);
+    region.width = region.image.width;
+    region.height = region.image.height;
+    region.channels = region.image.channels;
+
+    return region;
 }

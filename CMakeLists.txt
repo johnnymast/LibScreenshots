@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(LibScreenshots LANGUAGES C CXX)
+project(Screenshots LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -32,9 +32,9 @@ add_library(${PROJECT_NAME} SHARED
         include/LibScreenshots.hpp
 )
 
-
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
+        ${CMAKE_CURRENT_SOURCE_DIR}/../Graphics/include
 )
 
 # Platform detection
@@ -48,7 +48,7 @@ else()
     message(WARNING "⚠️ Unknown platform: ${CMAKE_SYSTEM_NAME}")
 endif()
 
-include(LibGraphics)
+include(Graphics)
 include(Windows)
 include(Wayland)
 include(X11)
