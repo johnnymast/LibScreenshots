@@ -1,0 +1,1 @@
+#include "ScreenshotWin32.hpp"

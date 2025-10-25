@@ -1,6 +1,7 @@
 #include "ScreenshotWayland.hpp"
 #include "LibScreenshots/ScreenshotResult.hpp"
 
+#if WAYLAND
 #include <glib.h>
 #include <gio/gio.h>
 
@@ -107,7 +108,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
             g_main_loop_quit(context->second);
         },
         new std::pair<ScreenshotResult *, GMainLoop *>(&resultData, loop),
-        [](gpointer data) {
+        [](const gpointer data) {
             delete static_cast<std::pair<ScreenshotResult *, GMainLoop *> *>(data);
         }
     );
@@ -119,8 +120,8 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     return resultData;
 }
 
-ScreenshotResult ScreenshotWayland::captureRegion(int x, int y, int width, int height) {
-    ScreenshotResult full = captureScreen();
+ScreenshotResult ScreenshotWayland::captureRegion(const int x, const int y, const int width, const int height) {
+    const ScreenshotResult full = captureScreen();
 
     Image cropped = full.image.crop(x, y, width, height);
 
@@ -132,3 +133,4 @@ ScreenshotResult ScreenshotWayland::captureRegion(int x, int y, int width, int h
 
     return region;
 }
+#endif
