@@ -18,10 +18,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake build-essential pkg-config
 
-      - name: Install OpenCV
+      - name: Install X11 and OpenCV development libraries
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libopencv-dev python3-opencv
+          sudo apt-get install -y --no-install-recommends libx11-dev libxtst-dev libxrandr-dev libopencv-dev
 
       - name: Install CMake
         run: |
@@ -29,15 +29,6 @@ jobs:
           chmod +x cmake-4.1.2-linux-x86_64.sh
           sudo ./cmake-4.1.2-linux-x86_64.sh --skip-license --prefix=/usr/local
           cmake --version
-
-      - name: Install X11 development libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libx11-dev libxtst-dev libxrandr-dev
-
-      - name: Validate OpenCV installation
-        run: |
-          python3 -c "import cv2; print('OpenCV version:', cv2.__version__)"
 
       - name: Configure
         run: |
