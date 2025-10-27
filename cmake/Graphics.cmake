@@ -28,3 +28,12 @@ FetchContent_MakeAvailable(LibGraphics)
 # (The previous add_subdirectory approach is replaced with FetchContent)
 # Optionally, LibGraphics headers are automatically included when the target is linked.
 target_link_libraries(Screenshots PUBLIC LibGraphics)
+
+
+# Ensure LibGraphics include directories are visible to Screenshots
+get_target_property(LIBGRAPHICS_INCLUDE_DIRS LibGraphics INTERFACE_INCLUDE_DIRECTORIES)
+if(NOT LIBGRAPHICS_INCLUDE_DIRS)
+    # Fallback in case LibGraphics doesn't export include dirs
+    set(LIBGRAPHICS_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../Graphics/include")
+endif()
+target_include_directories(Screenshots PUBLIC ${LIBGRAPHICS_INCLUDE_DIRS})
