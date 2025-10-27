@@ -29,7 +29,6 @@ FetchContent_MakeAvailable(LibGraphics)
 # Optionally, LibGraphics headers are automatically included when the target is linked.
 target_link_libraries(LibScreenshots PUBLIC Graphics)
 
-
 # Ensure LibGraphics include directories are visible to Screenshots
 get_target_property(LIBGRAPHICS_INCLUDE_DIRS Graphics INTERFACE_INCLUDE_DIRECTORIES)
 if(NOT LIBGRAPHICS_INCLUDE_DIRS)
