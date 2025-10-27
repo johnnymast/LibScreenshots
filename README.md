@@ -4,7 +4,7 @@
 
 ![C++17+](https://img.shields.io/badge/C++-17%2B-blue.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Tests](https://github.com/johnnymast/LibGraphics/actions/workflows/testing.yml/badge.svg)](https://github.com/johnnymast/LibGraphics/actions/workflows/testing.yml)
+[![Build](https://github.com/johnnymast/LibScreenshots/actions/workflows/build.yml/badge.svg)](https://github.com/johnnymast/LibScreenshots/actions/workflows/build.yml)
 </div>
 
 
