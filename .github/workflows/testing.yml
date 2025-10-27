@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install CMake (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl software-properties-common lsb-release
+          sudo apt-get install -y build-essential
+          # Install latest stable cmake (>= 4.0)
+          sudo apt-get remove -y cmake
+          sudo apt-get update
+          sudo apt-get install -y apt-transport-https ca-certificates gnupg
+          sudo cmake --version || true
+          sudo curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | sudo gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg
+          echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/kitware.list > /dev/null
+          sudo apt-get update
+          sudo apt-get install -y cmake
+
+      - name: Install CMake (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
+          refresh_env
+          cmake --version
+
+      - name: Configure
+        shell: bash
+        run: |
+          cmake --version
+          cd build
+          cmake .. -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        shell: bash
+        run: |
+          cd build
+          cmake --build . --config Release -- -j
+
+      - name: Test
+        if: always()
+        shell: bash
+        run: |
+          cd build
+          ctest --output-on-failure -j
