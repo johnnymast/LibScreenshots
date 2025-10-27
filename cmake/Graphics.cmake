@@ -35,4 +35,4 @@ if(NOT LIBGRAPHICS_INCLUDE_DIRS)
     # Fallback in case LibGraphics doesn't export include dirs
     set(LIBGRAPHICS_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../Graphics/include")
 endif()
-target_include_directories(Screenshots PUBLIC ${LIBGRAPHICS_INCLUDE_DIRS})
+target_include_directories(LibScreenshots PUBLIC ${LIBGRAPHICS_INCLUDE_DIRS})
