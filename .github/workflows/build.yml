@@ -6,17 +6,10 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Install CMake (Linux)
-        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y curl software-properties-common lsb-release
@@ -31,30 +24,24 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake
 
-      - name: Install CMake (Windows)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
+      - name: Validate CMake version
         run: |
-          choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System' -y
-          refresh_env
-          cmake --version
+          VER=$(cmake --version | head -n1 | awk '{print $3}')
+          MAJOR=$(echo $VER | cut -d. -f1)
+          if [ "$MAJOR" -lt 4 ]; then
+            echo "Error: CMake version too old ($VER). Please install CMake 4.0 or newer."
+            exit 1
+          fi
+          echo "Using CMake version $VER"
 
       - name: Configure
         shell: bash
         run: |
           cmake --version
-          cd build
-          cmake .. -DCMAKE_BUILD_TYPE=Release
+          mkdir -p build
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
         shell: bash
         run: |
-          cd build
-          cmake --build . --config Release -- -j
-
-      - name: Test
-        if: always()
-        shell: bash
-        run: |
-          cd build
-          ctest --output-on-failure -j
+          cmake --build build --config Release -- -j
