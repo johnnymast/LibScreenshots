@@ -1,47 +1,27 @@
-name: CI
+name: Build
+
 
 on:
   push:
   pull_request:
 
 jobs:
-  build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Install CMake (Linux)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl software-properties-common lsb-release
-          sudo apt-get install -y build-essential
-          # Install latest stable cmake (>= 4.0)
-          sudo apt-get remove -y cmake
-          sudo apt-get update
-          sudo apt-get install -y apt-transport-https ca-certificates gnupg
-          sudo cmake --version || true
-          sudo curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc | sudo gpg --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg
-          echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/kitware.list > /dev/null
-          sudo apt-get update
-          sudo apt-get install -y cmake
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Validate CMake version
+      - name: Install dependencies
         run: |
-          VER=$(cmake --version | head -n1 | awk '{print $3}')
-          MAJOR=$(echo $VER | cut -d. -f1)
-          if [ "$MAJOR" -lt 4 ]; then
-            echo "Error: CMake version too old ($VER). Please install CMake 4.0 or newer."
-            exit 1
-          fi
-          echo "Using CMake version $VER"
+          sudo apt-get update
+          sudo apt-get install -y cmake build-essential pkg-config
 
       - name: Configure
-        shell: bash
         run: |
-          cmake --version
-          mkdir -p build
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        shell: bash
         run: |
-          cmake --build build --config Release -- -j
+          cmake --build build --config Release -- -j$(nproc)
