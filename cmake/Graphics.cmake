@@ -27,7 +27,7 @@ FetchContent_MakeAvailable(LibGraphics)
 # Link Screenshots against LibGraphics instead of a local subdirectory
 # (The previous add_subdirectory approach is replaced with FetchContent)
 # Optionally, LibGraphics headers are automatically included when the target is linked.
-target_link_libraries(Screenshots PUBLIC LibGraphics)
+target_link_libraries(Screenshots PUBLIC Graphics)
 
 
 # Ensure LibGraphics include directories are visible to Screenshots
