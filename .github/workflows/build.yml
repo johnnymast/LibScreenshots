@@ -23,6 +23,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends libopencv-dev python3-opencv
 
+      - name: Install X11 development libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libx11-dev libxtst-dev
+
       - name: Validate OpenCV installation
         run: |
           python3 -c "import cv2; print('OpenCV version:', cv2.__version__)"
