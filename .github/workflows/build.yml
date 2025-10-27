@@ -21,7 +21,7 @@ jobs:
       - name: Install X11 and OpenCV development libraries
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libx11-dev libxtst-dev libxrandr-dev libopencv-dev
+          sudo apt-get install -y --no-install-recommends libx11-dev libxtst-dev libxrandr-dev libopencv-dev libleptonica-dev tesseract-ocr libtesseract-dev
 
       - name: Install CMake
         run: |
