@@ -39,13 +39,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 # Platform detection
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    message(STATUS "🖥️ Detected Windows platform")
     target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_WINDOWS)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message(STATUS "🐧 Detected Linux platform")
     target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_LINUX)
-else()
-    message(WARNING "⚠️ Unknown platform: ${CMAKE_SYSTEM_NAME}")
 endif()
 
 include(Graphics)
