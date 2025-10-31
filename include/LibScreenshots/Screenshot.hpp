@@ -4,7 +4,7 @@
 #include "windows/ScreenshotWin32.hpp"
 #elif PLATFORM_LINUX
 
-    #if defined(WAYLAND)
+    #if WAYLAND
     #include "wayland/ScreenshotWayland.hpp"
     #else
     #include "x11/ScreenshotX11.hpp"
