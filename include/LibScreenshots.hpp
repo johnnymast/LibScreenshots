@@ -6,6 +6,6 @@
 using LibScreenshots::ScreenshotResult;
 
 namespace LibScreenshots {
-    ScreenshotResult LIBGRAPHICS_API takes_screenshot();
-    ScreenshotResult LIBGRAPHICS_API takes_screenshot(int x, int y, int width, int height);
+    ScreenshotResult LIBGRAPHICS_API TakeScreenshot();
+    ScreenshotResult LIBGRAPHICS_API TakeScreenshot(int x, int y, int width, int height);
 }
