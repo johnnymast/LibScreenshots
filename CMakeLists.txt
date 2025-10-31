@@ -41,7 +41,6 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_WINDOWS)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    message("Using linux backend")
     target_compile_definitions(${PROJECT_NAME} PRIVATE PLATFORM_LINUX)
 endif()
 
