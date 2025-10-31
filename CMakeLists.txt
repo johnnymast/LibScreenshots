@@ -8,7 +8,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 
 # Optional Wayland toggle
-option(WAYLAND "Enable Wayland support via DBus portal" OFF)
+option(WAYLAND "Enable Wayland support via DBus portal" ON)
 
 # Core library
 add_library(${PROJECT_NAME} SHARED
