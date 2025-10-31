@@ -12,7 +12,6 @@
     #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotWin32()
 #elif PLATFORM_LINUX
     #if WAYLAND
-#   pragma message("✅ Compiling with WAYLAND support")
         #include "../../../src/wayland/ScreenshotWayland.hpp"
         #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotWayland()
     #else
