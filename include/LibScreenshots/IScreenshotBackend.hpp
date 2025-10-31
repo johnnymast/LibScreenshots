@@ -6,7 +6,7 @@
 #include <string>
 
 namespace LibScreenshots {
-    class LIBGRAPHICS_API IScreenshotBackend {
+    class LIBSCREENSHOTS_EXPORT IScreenshotBackend {
     public:
         virtual ~IScreenshotBackend() = default;
 

@@ -5,7 +5,7 @@
 #include <LibGraphics/Image.hpp>
 
 namespace LibScreenshots {
-    struct LIBGRAPHICS_API ScreenshotResult {
+    struct LIBSCREENSHOTS_EXPORT ScreenshotResult {
         LibGraphics::Image image;
         int width;
         int height;
