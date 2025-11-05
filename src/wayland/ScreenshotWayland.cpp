@@ -16,6 +16,11 @@ namespace fs = std::filesystem;
 using namespace LibScreenshots;
 using LibGraphics::Image;
 
+ScreenshotWayland& ScreenshotWayland::getInstance() {
+    static ScreenshotWayland instance;
+    return instance;
+}
+
 ScreenshotResult ScreenshotWayland::captureScreen() {
     GError *error = nullptr;
     GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);

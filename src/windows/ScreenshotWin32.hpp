@@ -1,9 +1,9 @@
-#ifndef LIBTEST_SCREENSHOTWIN32_HPP
-#define LIBTEST_SCREENSHOTWIN32_HPP
+#pragma once
 
 
-class ScreenshotWin32 {
-};
-
-
-#endif //LIBTEST_SCREENSHOTWIN32_HPP
+namespace LibScreenshots {
+    class ScreenshotWin32 {
+    public:
+        static ScreenshotWin32 &getInstance();
+    };
+}

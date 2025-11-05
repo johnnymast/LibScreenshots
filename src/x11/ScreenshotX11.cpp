@@ -17,6 +17,8 @@ using namespace LibScreenshots;
 using LibGraphics::Image;
 using LibGraphics::Utils::Converter;
 
+
+
 std::pair<int, int> GetScreenResolution() {
     Display* display = XOpenDisplay(nullptr);
     if (!display) {
@@ -55,6 +57,11 @@ std::pair<int, int> GetScreenResolution() {
     XRRFreeScreenResources(resources);
     XCloseDisplay(display);
     return resolution;
+}
+
+ScreenshotX11& ScreenshotX11::getInstance() {
+    static ScreenshotX11 instance;
+    return instance;
 }
 
 ScreenshotResult ScreenshotX11::captureScreen() {

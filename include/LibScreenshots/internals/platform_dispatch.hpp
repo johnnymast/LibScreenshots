@@ -9,14 +9,22 @@
 #if PLATFORM_WINDOWS
 #   pragma message("✅ Compiling with PLATFORM_WINDOWS")
     #include "../../../src/windows/ScreenshotWin32.hpp"
-    #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotWin32()
+    // #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotWin32()
+    #define Screenshotinstance() LibScreenshots::ScreenshotWindows::getInstance();
+
 #elif PLATFORM_LINUX
     #if WAYLAND
         #include "../../../src/wayland/ScreenshotWayland.hpp"
-        #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotWayland()
+        // #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotWayland()
+        #define Screenshotinstance() LibScreenshots::ScreenshotWayland::getInstance();
+
+
     #else
         #include "../../../src/x11/ScreenshotX11.hpp"
-        #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotX11()
+
+        #define Screenshotinstance() LibScreenshots::ScreenshotX11::getInstance();
+
+        // #define CREATE_SCREENSHOT_PLATFORM() new ScreenshotX11()
     #endif
 
 #else

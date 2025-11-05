@@ -3,14 +3,14 @@
 
 namespace LibScreenshots {
     ScreenshotResult LIBSCREENSHOTS_EXPORT TakeScreenshot() {
-        const auto platform = CREATE_SCREENSHOT_PLATFORM();
-        ScreenshotResult result = platform->captureScreen();
+        auto instance = Screenshotinstance();
+        ScreenshotResult result = instance.captureScreen();
         return result;
     }
 
     ScreenshotResult LIBSCREENSHOTS_EXPORT TakeScreenshot(const int x, const int y, const int width, const int height) {
-        const auto platform = CREATE_SCREENSHOT_PLATFORM();
-        ScreenshotResult result = platform->captureRegion(x, y, width, height);
+        auto instance = Screenshotinstance();
+        ScreenshotResult result = instance.captureRegion(x, y, width, height);
         return result;
     }
 }
