@@ -134,7 +134,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
         "/org/freedesktop/portal/desktop",
         "org.freedesktop.portal.ScreenCast",
         "CreateSession",
-        g_variant_new("(a{sv})", &createOptions),
+        g_variant_new("(sa{sv})", "", &createOptions),  // ✅ FIXED: app_id + options
         nullptr,
         G_DBUS_CALL_FLAGS_NONE,
         -1,
@@ -185,8 +185,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
         context,
         [](gpointer data) { delete static_cast<Context *>(data); }
     );
-
-
 
     // Wait for user response
     g_main_loop_run(loop);
@@ -268,6 +266,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_object_unref(connection);
     return true;
 }
+
 
 void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);
