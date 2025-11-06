@@ -21,6 +21,7 @@ ScreenshotWayland &ScreenshotWayland::getInstance() {
     return instance;
 }
 
+
 ScreenshotResult ScreenshotWayland::captureScreen() {
     GError *error = nullptr;
     GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
@@ -51,7 +52,6 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     if (error)
         std::cout << "ScreenshotWayland: Error detected " << "\n";
 
-
     std::cout << "ScreenshotWayland: " << g_variant_print(result, true) << "\n";
     if (error) throw std::runtime_error(error->message);
 
@@ -60,18 +60,18 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     g_variant_get(result, "(@o)", &child);
     const gchar *request_path = g_variant_get_string(child, nullptr);
 
-    // ---- Lifetime-safe context-based approach ----
-    // Use a heap-allocated result and a heap-allocated context to avoid
-    // stack lifetime issues with callbacks.
-    struct Context {
-        ScreenshotResult* first;
-        GMainLoop* second;
-    };
-
-    ScreenshotResult* resultData = new ScreenshotResult();
+    // Stack-allocated result that will be moved at the end
+    ScreenshotResult resultData;
     GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
 
-    auto context = new Context{ resultData, loop };
+    // Simple context with pointers - no ownership transfer
+    struct Context {
+        ScreenshotResult *result;
+        GMainLoop *loop;
+        bool completed;
+    };
+
+    auto context = new Context{&resultData, loop, false};
 
     g_dbus_connection_signal_subscribe(
         connection,
@@ -85,90 +85,64 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
            gpointer user_data) {
             auto *context = static_cast<Context *>(user_data);
 
+            // Mark as started to prevent double-quit
+            if (context->completed) return;
+
             guint32 response_code;
-            GVariant *results;
-            // Read the body immediately into local values to avoid dangling pointers
+            GVariant *results = nullptr;
             g_variant_get(parameters, "(u@a{sv})", &response_code, &results);
 
-            // Guard against unexpected data
-            if (results == nullptr) {
-                if (context && context->second && g_main_loop_is_running(context->second)) {
-                    g_main_loop_quit(context->second);
-                }
+            if (results == nullptr || response_code != 0) {
                 if (results) g_variant_unref(results);
-                return;
-            }
-
-            if (response_code != 0) {
-                if (context && context->second && g_main_loop_is_running(context->second)) {
-                    g_main_loop_quit(context->second);
-                }
-                g_variant_unref(results);
+                context->completed = true;
+                g_main_loop_quit(context->loop);
                 return;
             }
 
             GVariant *uri_variant = g_variant_lookup_value(results, "uri", G_VARIANT_TYPE_STRING);
-            const gchar *uri = nullptr;
-            if (uri_variant != nullptr) {
-                uri = g_variant_get_string(uri_variant, nullptr);
+            if (!uri_variant) {
+                g_variant_unref(results);
+                context->completed = true;
+                g_main_loop_quit(context->loop);
+                return;
             }
+
+            const gchar *uri = g_variant_get_string(uri_variant, nullptr);
             std::string path = uri ? uri : "";
             if (path.rfind("file://", 0) == 0) path = path.substr(7);
 
+            // Wait for file to exist
             int retries = 10;
             while (retries-- > 0 && !std::filesystem::exists(path)) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
             }
 
-            if (!std::filesystem::exists(path)) {
-                if (context && context->second && g_main_loop_is_running(context->second)) {
-                    g_main_loop_quit(context->second);
+            if (std::filesystem::exists(path)) {
+                std::ifstream file(path, std::ios::binary);
+                if (file) {
+                    std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), {});
+                    try {
+                        auto img = Image::load_from_memory(buffer.data(), buffer.size());
+                        context->result->image = std::move(img);
+                        context->result->width = context->result->image.width;
+                        context->result->height = context->result->image.height;
+                        context->result->channels = context->result->image.channels;
+                    } catch (const std::exception &e) {
+                        std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
+                    }
                 }
-                if (uri_variant) g_variant_unref(uri_variant);
-                g_variant_unref(results);
-                return;
             }
 
-            std::ifstream file(path, std::ios::binary);
-            if (!file) {
-                if (context && context->second && g_main_loop_is_running(context->second)) {
-                    g_main_loop_quit(context->second);
-                }
-                if (uri_variant) g_variant_unref(uri_variant);
-                g_variant_unref(results);
-                return;
-            }
-
-            std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), {});
-
-            try {
-                // Patch: load via data pointer and size
-                auto img = Image::load_from_memory(buffer.data(), buffer.size());
-                context->first->image = std::move(img);
-                // Also update width/height/channels from loaded image
-                context->first->width = context->first->image.width;
-                context->first->height = context->first->image.height;
-                context->first->channels = context->first->image.channels;
-
-                // legacy form (kept for reference, not used):
-                // context->first->image = Image::load_from_memory(buffer);
-            } catch (const std::exception &e) {
-                std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
-            }
-
-            // Cleanup body data now that we've copied what we need
-            if (uri_variant) g_variant_unref(uri_variant);
+            g_variant_unref(uri_variant);
             g_variant_unref(results);
 
-            if (context && context->second && g_main_loop_is_running(context->second)) {
-                g_main_loop_quit(context->second);
-            }
+            context->completed = true;
+            g_main_loop_quit(context->loop);
         },
-        context, // pass our context
-        [](const gpointer data) {
-            // destroy_notify: free the context and the result
-            auto *context = static_cast<Context*>(data);
-            delete context->first;
+        context,
+        [](gpointer data) {
+            // Only free the context struct itself, not the pointed-to data
+            auto *context = static_cast<Context *>(data);
             delete context;
         }
     );
@@ -176,12 +150,9 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
     g_variant_unref(child);
+    g_variant_unref(result);
 
-    // Move the result out and free the heap-allocated storage
-    ScreenshotResult final = std::move(*resultData);
-    delete resultData; // frees the relocated data
-
-    return final;
+    return resultData;
 }
 
 ScreenshotResult ScreenshotWayland::captureRegion(const int x, const int y, const int width, const int height) {
