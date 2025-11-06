@@ -129,8 +129,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
 
     std::cout << "[PipeWire] before g_variant_new" << "\n";
 
-    GVariant *parameters = g_variant_new("(a{sv})", g_variant_builder_end(&options));
-
+   GVariant *parameters = g_variant_new("(a{sv})", "", &options);
 
     std::cout << "[PipeWire] after g_variant_new" << "\n";
 
