@@ -120,28 +120,18 @@ bool ScreenshotPipeWire::requestScreenCast() {
         return false;
     }
 
-    // Genereer geldige token
-    std::string token = "libscreenshots";
-    std::cout << "[PipeWire] 🧷 Using handle_token: " << token << "\n";
-
     // CreateSession
     GVariantBuilder options;
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
-    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
-    g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(TRUE));
-
-    GVariant *parameters = g_variant_new("(sa{sv})", "", &options);  // ✅ Correct tuple
+    g_variant_builder_add(&options, "{sv}", "modal", g_variant_new_boolean(false));
+    g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(false));
+    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
 
     std::cout << "[PipeWire] before g_variant_new" << "\n";
 
-    // GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));
-    GVariant *params = g_variant_new("(a{sv})", "", &options);
+   GVariant *parameters = g_variant_new("(sa{sv})", "", &options);
 
     std::cout << "[PipeWire] after g_variant_new" << "\n";
-
-    // char *debug_str = g_variant_print(params, TRUE);
-    // std::cout << "[PipeWire] 🧪 params = " << debug_str << "\n";
-    // g_free(debug_str);
 
 
     std::cout << "[PipeWire] 📤 Calling CreateSession...\n";
@@ -151,7 +141,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
         "/org/freedesktop/portal/desktop",
         "org.freedesktop.portal.ScreenCast",
         "CreateSession",
-        params,
+        parameters,
         nullptr,
         G_DBUS_CALL_FLAGS_NONE,
         -1,
