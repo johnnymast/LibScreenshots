@@ -130,22 +130,17 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
     g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(TRUE));
 
+    GVariant *parameters = g_variant_new("(sa{sv})", "", &options);  // ✅ Correct tuple
+
     std::cout << "[PipeWire] before g_variant_new" << "\n";
 
-    // ✅ Sluit builder af
-    GVariant *dict = g_variant_builder_end(&options);
-
-    // ✅ Gebruik dict in params
-    GVariant *params = g_variant_new("(sa{sv})", "", dict);
-
-    // GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));
+    GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));
 
     std::cout << "[PipeWire] after g_variant_new" << "\n";
 
     char *debug_str = g_variant_print(params, TRUE);
     std::cout << "[PipeWire] 🧪 params = " << debug_str << "\n";
     g_free(debug_str);
-
 
 
     std::cout << "[PipeWire] 📤 Calling CreateSession...\n";
