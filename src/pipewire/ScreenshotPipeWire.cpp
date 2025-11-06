@@ -120,7 +120,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
         return false;
     }
 
-    // Genereer unieke token
+    // Genereer geldige token en object path
     std::string token = "libscreenshots_" + std::to_string(rand() % 100000);
     std::string requestPath = "/org/freedesktop/portal/desktop/request/unix/" + token;
 
@@ -157,7 +157,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
         &error
     );
 
-
     if (error || !result) {
         std::cerr << "[PipeWire] CreateSession failed: " << (error ? error->message : "unknown") << "\n";
         if (error) g_error_free(error);
@@ -173,7 +172,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
 
     // SelectSources
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
-    g_variant_builder_add(&options, "{sv}", "types", g_variant_new_uint32(1));
+    g_variant_builder_add(&options, "{sv}", "types", g_variant_new_uint32(1)); // 1 = monitor
     g_variant_builder_add(&options, "{sv}", "multiple", g_variant_new_boolean(FALSE));
 
     result = g_dbus_connection_call_sync(
@@ -184,7 +183,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
         "SelectSources",
         g_variant_new("(oa{sv})", sessionHandle_.c_str(), &options),
         nullptr,
-        static_cast<GDBusCallFlags>(0),
+        G_DBUS_CALL_FLAGS_NONE,
         -1,
         nullptr,
         &error
@@ -211,7 +210,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
         "Start",
         g_variant_new("(osa{sv})", sessionHandle_.c_str(), "", &options),
         nullptr,
-        static_cast<GDBusCallFlags>(0),
+        G_DBUS_CALL_FLAGS_NONE,
         -1,
         nullptr,
         &fd_list,
@@ -239,6 +238,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_object_unref(connection);
     return true;
 }
+
 
 void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);
