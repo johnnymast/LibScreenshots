@@ -120,20 +120,22 @@ bool ScreenshotPipeWire::requestScreenCast() {
         return false;
     }
 
+    std::string token = "libscreenshots";
+    std::cout << "[PipeWire] 🧷 Using handle_token: " << token << "\n";
+
     // CreateSession
     GVariantBuilder options;
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&options, "{sv}", "modal", g_variant_new_boolean(true));
     g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(true));
-    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
+    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
 
-    std::cout << "[PipeWire] before g_variant_new" << "\n";
+    GVariant *dict = g_variant_builder_end(&options);
+    GVariant *parameters = g_variant_new("(sa{sv})", "", dict);
 
-   // GVariant *parameters = g_variant_new("(sa{sv})", "", &options);
-   GVariant *parameters = g_variant_new("(a{sv})", "", &options);
-
-    std::cout << "[PipeWire] after g_variant_new" << "\n";
-
+    char *debug_str = g_variant_print(parameters, TRUE);
+    std::cout << "[PipeWire] 🧪 parameters = " << debug_str << "\n";
+    g_free(debug_str);
 
     std::cout << "[PipeWire] 📤 Calling CreateSession...\n";
     GVariant *result = g_dbus_connection_call_sync(
@@ -157,7 +159,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
         return false;
     }
 
-    // Extract request path
     GVariant *child = nullptr;
     g_variant_get(result, "(@o)", &child);
     const gchar *request_path = g_variant_get_string(child, nullptr);
@@ -165,7 +166,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_variant_unref(child);
     g_variant_unref(result);
 
-    // Setup main loop and context
     GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
     struct Context {
         bool approved = false;
@@ -173,7 +173,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
     };
     auto *context = new Context{false, loop};
 
-    // Listen for Response signal
     g_dbus_connection_signal_subscribe(
         connection,
         "org.freedesktop.portal.Desktop",
@@ -196,7 +195,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
         [](gpointer data) { delete static_cast<Context *>(data); }
     );
 
-    // Wait for user response
     std::cout << "[PipeWire] ⏳ Waiting for user approval...\n";
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
@@ -211,7 +209,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     GVariantBuilder sourceOptions;
     g_variant_builder_init(&sourceOptions, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&sourceOptions, "{sv}", "types", g_variant_new_uint32(1)); // 1 = monitor
-    g_variant_builder_add(&sourceOptions, "{sv}", "multiple", g_variant_new_boolean(FALSE));
+    g_variant_builder_add(&sourceOptions, "{sv}", "multiple", g_variant_new_boolean(false));
 
     std::cout << "[PipeWire] 📤 Calling SelectSources...\n";
     result = g_dbus_connection_call_sync(
@@ -240,7 +238,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     // Start
     GVariantBuilder startOptions;
     g_variant_builder_init(&startOptions, G_VARIANT_TYPE("a{sv}"));
-    g_variant_builder_add(&startOptions, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
+    g_variant_builder_add(&startOptions, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
 
     std::cout << "[PipeWire] 📤 Calling Start...\n";
     GUnixFDList *fd_list = nullptr;
@@ -282,6 +280,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_object_unref(connection);
     return true;
 }
+
 
 void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);
