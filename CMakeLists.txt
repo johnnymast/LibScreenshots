@@ -14,6 +14,7 @@ option(WAYLAND "Enable Wayland support via DBus portal" ON)
 add_library(${PROJECT_NAME} SHARED
         src/main.cpp
 
+
         include/LibScreenshots/internals/platform_dispatch.hpp
         include/LibScreenshots/internals/export.hpp
 
