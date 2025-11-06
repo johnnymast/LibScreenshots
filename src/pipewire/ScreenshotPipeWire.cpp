@@ -102,10 +102,14 @@ bool ScreenshotPipeWire::requestScreenCast() {
         return false;
     }
 
-    // Create session
+    // Genereer unieke token
+    std::string token = "libscreenshots-" + std::to_string(rand() % 100000);
+    std::string requestPath = "/org/freedesktop/portal/desktop/request/flatpak/" + token;
+
+    // CreateSession
     GVariantBuilder options;
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
-    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
+    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
 
     GVariant *result = g_dbus_connection_call_sync(
         connection,
@@ -134,7 +138,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_variant_unref(session_path_variant);
     g_variant_unref(result);
 
-    // Select sources
+    // SelectSources
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&options, "{sv}", "types", g_variant_new_uint32(1));
     g_variant_builder_add(&options, "{sv}", "multiple", g_variant_new_boolean(FALSE));
@@ -161,9 +165,9 @@ bool ScreenshotPipeWire::requestScreenCast() {
     }
     g_variant_unref(result);
 
-    // Start session
+    // Start
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
-    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots_start"));
+    g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
 
     GUnixFDList *fd_list = nullptr;
     result = g_dbus_connection_call_with_unix_fd_list_sync(
@@ -173,10 +177,10 @@ bool ScreenshotPipeWire::requestScreenCast() {
         "org.freedesktop.portal.ScreenCast",
         "Start",
         g_variant_new("(osa{sv})", sessionHandle_.c_str(), "", &options),
-        nullptr, // reply_type
+        nullptr,
         static_cast<GDBusCallFlags>(0),
         -1,
-        nullptr, // no input FD list
+        nullptr,
         &fd_list,
         nullptr,
         &error
@@ -202,8 +206,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_object_unref(connection);
     return true;
 }
-
-
 
 void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);
@@ -298,7 +300,6 @@ void ScreenshotPipeWire::startStream() {
     pw_thread_loop_unlock(loop_);
     std::this_thread::sleep_for(std::chrono::milliseconds(500));
 }
-
 
 void ScreenshotPipeWire::stopStream() {
     if (!streamActive_) return;
