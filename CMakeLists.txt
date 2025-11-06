@@ -31,6 +31,8 @@ add_library(${PROJECT_NAME} SHARED
         src/x11/ScreenshotX11.cpp
 
         include/LibScreenshots.hpp
+        src/pipewire/ScreenshotPipeWire.cpp
+        src/pipewire/ScreenshotPipeWire.hpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
