@@ -15,6 +15,24 @@
 using namespace LibScreenshots;
 using LibGraphics::Image;
 
+static void onPortalResponse(GDBusConnection *conn, const gchar *sender_name,
+                             const gchar *object_path, const gchar *interface_name,
+                             const gchar *signal_name, GVariant *parameters, gpointer user_data) {
+    guint32 response;
+    GVariant *results;
+
+    g_variant_get(parameters, "(u@a{sv})", &response, &results);
+    if (response == 0) {
+        std::cout << "[Portal] User approved screencast request\n";
+    } else {
+        std::cerr << "[Portal] User denied or error occurred\n";
+    }
+
+    g_variant_unref(results);
+}
+
+
+
 ScreenshotPipeWire::ScreenshotPipeWire() {
     pw_init(nullptr, nullptr);
 }
@@ -105,6 +123,20 @@ bool ScreenshotPipeWire::requestScreenCast() {
     // Genereer unieke token
     std::string token = "libscreenshots-" + std::to_string(rand() % 100000);
     std::string requestPath = "/org/freedesktop/portal/desktop/request/flatpak/" + token;
+
+    // Luister op het request-pad voor Response signal
+    g_dbus_connection_signal_subscribe(
+        connection,
+        "org.freedesktop.portal.Desktop",
+        "org.freedesktop.portal.Request",
+        "Response",
+        requestPath.c_str(),
+        nullptr,
+        G_DBUS_SIGNAL_FLAGS_NONE,
+        onPortalResponse,
+        this,
+        nullptr
+    );
 
     // CreateSession
     GVariantBuilder options;
@@ -207,6 +239,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     return true;
 }
 
+
 void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);
     if (!param || id != SPA_PARAM_Format) return;
@@ -218,6 +251,7 @@ void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const str
     self->frameHeight_ = format.size.height;
     self->frameFormat_ = format.format;
 }
+
 
 void ScreenshotPipeWire::onStreamProcess(void *data) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);

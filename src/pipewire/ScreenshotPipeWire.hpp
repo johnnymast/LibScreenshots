@@ -56,6 +56,7 @@ namespace LibScreenshots {
         int pipewireFd_ = -1;
         uint32_t pipewireNode_ = 0;
 
+
         static void onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param);
         static void onStreamProcess(void *data);
         static void onStreamStateChanged(void *data, enum pw_stream_state old,
