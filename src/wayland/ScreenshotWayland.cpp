@@ -16,7 +16,7 @@ namespace fs = std::filesystem;
 using namespace LibScreenshots;
 using LibGraphics::Image;
 
-ScreenshotWayland& ScreenshotWayland::getInstance() {
+ScreenshotWayland &ScreenshotWayland::getInstance() {
     static ScreenshotWayland instance;
     return instance;
 }
@@ -75,7 +75,9 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
             g_variant_get(parameters, "(u@a{sv})", &response_code, &results);
 
             if (response_code != 0) {
-                g_main_loop_quit(context->second);
+                if (context && context->second && g_main_loop_is_running(context->second)) {
+                    g_main_loop_quit(context->second);
+                }
                 return;
             }
 
@@ -106,7 +108,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
                 context->first->width = context->first->image.width;
                 context->first->height = context->first->image.height;
                 context->first->channels = context->first->image.channels;
-            } catch (const std::exception& e) {
+            } catch (const std::exception &e) {
                 std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
             }
 
