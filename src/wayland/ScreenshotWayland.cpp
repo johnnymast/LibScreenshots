@@ -110,8 +110,8 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
             std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), {});
             try {
                 auto img = Image::load_from_memory(buffer.data(), buffer.size());
-                context->first->image = img;
-                // context->first->image = Image::load_from_memory(buffer);
+
+                context->first->image = std::move(img);
                 context->first->width = context->first->image.width;
                 context->first->height = context->first->image.height;
                 context->first->channels = context->first->image.channels;
