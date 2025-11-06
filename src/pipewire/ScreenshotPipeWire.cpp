@@ -282,6 +282,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     return true;
 }
 
+
 void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);
     if (!param || id != SPA_PARAM_Format) return;
