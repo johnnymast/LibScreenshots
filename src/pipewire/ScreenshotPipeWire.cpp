@@ -128,7 +128,10 @@ bool ScreenshotPipeWire::requestScreenCast() {
     GVariantBuilder options;
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
-    g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(TRUE));  // ✅ Belangrijk
+    g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(TRUE));
+
+    GVariant *parameters = g_variant_new("(sa{sv})", "", &options);  // ✅ Correct tuple
+
     std::cout << "[PipeWire] before g_variant_new" << "\n";
 
     GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));
