@@ -115,26 +115,28 @@ bool ScreenshotPipeWire::requestScreenCast() {
     GError *error = nullptr;
     GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
     if (error || !connection) {
-        std::cerr << "[PipeWire] Failed to get DBus connection: " << (error ? error->message : "unknown") << "\n";
+        std::cerr << "[PipeWire] ❌ Failed to get DBus connection: " << (error ? error->message : "unknown") << "\n";
         if (error) g_error_free(error);
         return false;
     }
 
     // Genereer geldige token
     std::string token = "libscreenshots_" + std::to_string(rand() % 100000);
+    std::cout << "[PipeWire] 🧷 Using handle_token: " << token << "\n";
 
     // CreateSession
     GVariantBuilder createOptions;
     g_variant_builder_init(&createOptions, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&createOptions, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
 
+    std::cout << "[PipeWire] 📤 Calling CreateSession...\n";
     GVariant *result = g_dbus_connection_call_sync(
         connection,
         "org.freedesktop.portal.Desktop",
         "/org/freedesktop/portal/desktop",
         "org.freedesktop.portal.ScreenCast",
         "CreateSession",
-        g_variant_new("(a{sv})", &createOptions),  // ✅ Correcte signatuur
+        g_variant_new("(a{sv})", &createOptions),
         nullptr,
         G_DBUS_CALL_FLAGS_NONE,
         -1,
@@ -143,7 +145,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     );
 
     if (error || !result) {
-        std::cerr << "[PipeWire] CreateSession failed: " << (error ? error->message : "unknown") << "\n";
+        std::cerr << "[PipeWire] ❌ CreateSession failed: " << (error ? error->message : "unknown") << "\n";
         if (error) g_error_free(error);
         g_object_unref(connection);
         return false;
@@ -153,11 +155,13 @@ bool ScreenshotPipeWire::requestScreenCast() {
     GVariant *session_path_variant = nullptr;
     g_variant_get(result, "(@o)", &session_path_variant);
     const gchar *session_handle = g_variant_get_string(session_path_variant, nullptr);
+    std::cout << "[PipeWire] ✅ Received session handle: " << session_handle << "\n";
     g_variant_unref(session_path_variant);
     g_variant_unref(result);
 
     // Build request path
     std::string requestPath = "/org/freedesktop/portal/desktop/request/unix/" + token;
+    std::cout << "[PipeWire] 📡 Listening for Response on: " << requestPath << "\n";
 
     // Setup main loop and context
     GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
@@ -182,6 +186,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
             GVariant *results = nullptr;
             g_variant_get(parameters, "(u@a{sv})", &response_code, &results);
             ctx->approved = (response_code == 0);
+            std::cout << "[PipeWire] 📥 Portal responded with code: " << response_code << "\n";
             g_variant_unref(results);
             g_main_loop_quit(ctx->loop);
         },
@@ -190,11 +195,12 @@ bool ScreenshotPipeWire::requestScreenCast() {
     );
 
     // Wait for user response
+    std::cout << "[PipeWire] ⏳ Waiting for user approval...\n";
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
 
     if (!context->approved) {
-        std::cerr << "[PipeWire] User denied screencast request or error occurred\n";
+        std::cerr << "[PipeWire] ❌ User denied screencast request or error occurred\n";
         g_object_unref(connection);
         return false;
     }
@@ -205,6 +211,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_variant_builder_add(&sourceOptions, "{sv}", "types", g_variant_new_uint32(1)); // 1 = monitor
     g_variant_builder_add(&sourceOptions, "{sv}", "multiple", g_variant_new_boolean(FALSE));
 
+    std::cout << "[PipeWire] 📤 Calling SelectSources...\n";
     result = g_dbus_connection_call_sync(
         connection,
         "org.freedesktop.portal.Desktop",
@@ -220,18 +227,20 @@ bool ScreenshotPipeWire::requestScreenCast() {
     );
 
     if (error || !result) {
-        std::cerr << "[PipeWire] SelectSources failed: " << (error ? error->message : "unknown") << "\n";
+        std::cerr << "[PipeWire] ❌ SelectSources failed: " << (error ? error->message : "unknown") << "\n";
         if (error) g_error_free(error);
         g_object_unref(connection);
         return false;
     }
     g_variant_unref(result);
+    std::cout << "[PipeWire] ✅ SelectSources succeeded\n";
 
     // Start
     GVariantBuilder startOptions;
     g_variant_builder_init(&startOptions, G_VARIANT_TYPE("a{sv}"));
     g_variant_builder_add(&startOptions, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
 
+    std::cout << "[PipeWire] 📤 Calling Start...\n";
     GUnixFDList *fd_list = nullptr;
     result = g_dbus_connection_call_with_unix_fd_list_sync(
         connection,
@@ -250,7 +259,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     );
 
     if (error || !result || !fd_list) {
-        std::cerr << "[PipeWire] Start failed: " << (error ? error->message : "unknown") << "\n";
+        std::cerr << "[PipeWire] ❌ Start failed: " << (error ? error->message : "unknown") << "\n";
         if (error) g_error_free(error);
         g_object_unref(connection);
         return false;
@@ -258,12 +267,14 @@ bool ScreenshotPipeWire::requestScreenCast() {
 
     pipewireFd_ = g_unix_fd_list_get(fd_list, 0, &error);
     if (pipewireFd_ < 0 || error) {
-        std::cerr << "[PipeWire] Failed to extract FD: " << (error ? error->message : "unknown") << "\n";
+        std::cerr << "[PipeWire] ❌ Failed to extract FD: " << (error ? error->message : "unknown") << "\n";
         if (error) g_error_free(error);
         g_variant_unref(result);
         g_object_unref(connection);
         return false;
     }
+
+    std::cout << "[PipeWire] ✅ PipeWire FD acquired: " << pipewireFd_ << "\n";
 
     g_variant_unref(result);
     g_object_unref(connection);
