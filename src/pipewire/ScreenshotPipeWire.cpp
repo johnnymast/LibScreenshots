@@ -139,9 +139,9 @@ bool ScreenshotPipeWire::requestScreenCast() {
 
     std::cout << "[PipeWire] after g_variant_new" << "\n";
 
-    char *debug_str = g_variant_print(params, TRUE);
-    std::cout << "[PipeWire] 🧪 params = " << debug_str << "\n";
-    g_free(debug_str);
+    // char *debug_str = g_variant_print(params, TRUE);
+    // std::cout << "[PipeWire] 🧪 params = " << debug_str << "\n";
+    // g_free(debug_str);
 
 
     std::cout << "[PipeWire] 📤 Calling CreateSession...\n";
