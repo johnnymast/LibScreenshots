@@ -186,6 +186,8 @@ bool ScreenshotPipeWire::requestScreenCast() {
         [](gpointer data) { delete static_cast<Context *>(data); }
     );
 
+
+
     // Wait for user response
     g_main_loop_run(loop);
     g_main_loop_unref(loop);
