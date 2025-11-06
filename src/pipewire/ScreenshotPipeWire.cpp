@@ -19,6 +19,42 @@ ScreenshotPipeWire::ScreenshotPipeWire() {
     pw_init(nullptr, nullptr);
 }
 
+void ScreenshotPipeWire::cleanup() {
+    stopStream();
+
+    if (loop_) {
+        pw_thread_loop_stop(loop_);
+    }
+
+    if (core_) {
+        pw_core_disconnect(core_);
+        core_ = nullptr;
+    }
+
+    if (context_) {
+        pw_context_destroy(context_);
+        context_ = nullptr;
+    }
+
+    if (loop_) {
+        pw_thread_loop_destroy(loop_);
+        loop_ = nullptr;
+    }
+
+    stream_ = nullptr;
+    frameBuffer_.clear();
+    frameWidth_ = 0;
+    frameHeight_ = 0;
+    frameStride_ = 0;
+    frameFormat_ = 0;
+    frameReady_ = false;
+    streamActive_ = false;
+    pipewireFd_ = -1;
+    pipewireNode_ = 0;
+    sessionHandle_.clear();
+    initialized_ = false;
+}
+
 ScreenshotPipeWire::~ScreenshotPipeWire() {
     cleanup();
     pw_deinit();
