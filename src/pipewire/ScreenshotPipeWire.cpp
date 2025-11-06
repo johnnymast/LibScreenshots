@@ -127,6 +127,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     // CreateSession
     GVariantBuilder options;
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(true));  // ✅ Voeg dit toe
     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
     GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));  // ✅ Correct
 
