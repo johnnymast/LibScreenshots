@@ -12,6 +12,8 @@
 #include <chrono>
 #include <filesystem>
 
+#include <memory> // for std::unique_ptr if needed
+
 namespace fs = std::filesystem;
 using namespace LibScreenshots;
 using LibGraphics::Image;
@@ -60,9 +62,21 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     g_variant_get(result, "(@o)", &child);
     const gchar *request_path = g_variant_get_string(child, nullptr);
 
-    ScreenshotResult resultData;
+    // ---- Lifetime-safe context-based approach ----
+    // Use a heap-allocated result and a heap-allocated context to avoid
+    // stack lifetime issues with callbacks.
+    struct Context {
+        ScreenshotResult* first;
+        GMainLoop* second;
+    };
+
+    ScreenshotResult* resultData = new ScreenshotResult();
     GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
 
+    auto context = new Context{ resultData, loop };
+
+    // Internal helper to transfer image data safely
+    // This keeps the existing API where we fill context->first->image and metadata.
     g_dbus_connection_signal_subscribe(
         connection,
         "org.freedesktop.portal.Desktop",
@@ -73,7 +87,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
         G_DBUS_SIGNAL_FLAGS_NONE,
         [](GDBusConnection *, const gchar *, const gchar *, const gchar *, const gchar *, GVariant *parameters,
            gpointer user_data) {
-            auto *context = static_cast<std::pair<ScreenshotResult *, GMainLoop *> *>(user_data);
+            auto *context = static_cast<Context *>(user_data);
 
             guint32 response_code;
             GVariant *results;
@@ -97,34 +111,47 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
             }
 
             if (!std::filesystem::exists(path)) {
-                g_main_loop_quit(context->second);
+                if (context && context->second && g_main_loop_is_running(context->second)) {
+                    g_main_loop_quit(context->second);
+                }
                 return;
             }
 
             std::ifstream file(path, std::ios::binary);
             if (!file) {
-                g_main_loop_quit(context->second);
+                if (context && context->second && g_main_loop_is_running(context->second)) {
+                    g_main_loop_quit(context->second);
+                }
                 return;
             }
 
             std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), {});
-            try {
-                auto img = Image::load_from_memory(buffer.data(), buffer.size());
 
+            try {
+                // Patch: load via data pointer and size
+                auto img = Image::load_from_memory(buffer.data(), buffer.size());
                 context->first->image = std::move(img);
+                // Also update width/height/channels from loaded image
                 context->first->width = context->first->image.width;
                 context->first->height = context->first->image.height;
                 context->first->channels = context->first->image.channels;
+
+                // legacy form (kept for reference, not used):
+                // context->first->image = Image::load_from_memory(buffer);
             } catch (const std::exception &e) {
                 std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
             }
 
-            g_main_loop_quit(context->second);
+            if (context && context->second && g_main_loop_is_running(context->second)) {
+                g_main_loop_quit(context->second);
+            }
         },
-        new std::pair<ScreenshotResult *, GMainLoop *>(&resultData, loop),
+        context, // pass our context
         [](const gpointer data) {
-            std::cout << "ScreenshotWayland: Signal handler destroyed\n";
-            delete static_cast<std::pair<ScreenshotResult *, GMainLoop *> *>(data);
+            // destroy_notify: free the context and the result
+            auto *context = static_cast<Context*>(data);
+            delete context->first;
+            delete context;
         }
     );
 
@@ -132,7 +159,11 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     g_main_loop_unref(loop);
     g_variant_unref(child);
 
-    return resultData;
+    // Move the result out and free the heap-allocated storage
+    ScreenshotResult final = std::move(*resultData);
+    delete resultData; // frees the relocated data
+
+    return final;
 }
 
 ScreenshotResult ScreenshotWayland::captureRegion(const int x, const int y, const int width, const int height) {
