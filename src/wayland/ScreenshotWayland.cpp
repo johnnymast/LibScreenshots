@@ -21,7 +21,6 @@ ScreenshotWayland &ScreenshotWayland::getInstance() {
     return instance;
 }
 
-
 ScreenshotResult ScreenshotWayland::captureScreen() {
     GError *error = nullptr;
     GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
