@@ -51,7 +51,7 @@ endif()
 include(Graphics)
 include(Windows)
 include(Wayland)
-include(Pipewire)
+include(PipeWire)
 include(X11)
 
 
