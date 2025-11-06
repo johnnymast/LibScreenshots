@@ -116,6 +116,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
         },
         new std::pair<ScreenshotResult *, GMainLoop *>(&resultData, loop),
         [](const gpointer data) {
+            std::cout << "ScreenshotWayland: Signal handler destroyed\n";
             delete static_cast<std::pair<ScreenshotResult *, GMainLoop *> *>(data);
         }
     );
