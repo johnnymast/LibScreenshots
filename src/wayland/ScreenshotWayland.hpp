@@ -11,5 +11,9 @@ namespace LibScreenshots {
 
         ScreenshotResult captureScreen() override;
         ScreenshotResult captureRegion(int x, int y, int width, int height)  override;
+    private:
+        ScreenshotWayland(const ScreenshotWayland&) = delete;
+        ScreenshotWayland& operator=(const ScreenshotWayland&) = delete;
+
     };
 } // namespace LibScreenshots
