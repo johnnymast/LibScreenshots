@@ -121,8 +121,8 @@ bool ScreenshotPipeWire::requestScreenCast() {
     }
 
     // Genereer unieke token
-    std::string token = "libscreenshots-" + std::to_string(rand() % 100000);
-    std::string requestPath = "/org/freedesktop/portal/desktop/request/flatpak/" + token;
+    std::string token = "libscreenshots_" + std::to_string(rand() % 100000);
+    std::string requestPath = "/org/freedesktop/portal/desktop/request/unix/" + token;
 
     // Luister op het request-pad voor Response signal
     g_dbus_connection_signal_subscribe(
