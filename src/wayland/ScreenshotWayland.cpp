@@ -48,6 +48,11 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
         nullptr,
         &error
     );
+    if (error)
+        std::cout << "ScreenshotWayland: Error detected " << "\n";
+
+
+    std::cout << "ScreenshotWayland: " << g_variant_print(result, true) << "\n";
     if (error) throw std::runtime_error(error->message);
 
     // Extract request path
