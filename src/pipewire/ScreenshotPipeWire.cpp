@@ -121,7 +121,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     }
 
     // Genereer geldige token en object path
-    std::string token = "libscreenshots_" + std::to_string(rand() % 100000);
+    std::string token = "libscreenshots-" + std::to_string(rand() % 100000);
     std::string requestPath = "/org/freedesktop/portal/desktop/request/unix/" + token;
 
     // Luister op het request-pad voor Response signal
