@@ -151,11 +151,12 @@ bool ScreenshotPipeWire::requestScreenCast() {
         "CreateSession",
         g_variant_new("(a{sv})", &options),
         nullptr,
-        static_cast<GDBusCallFlags>(0),
+        G_DBUS_CALL_FLAGS_NONE,
         -1,
         nullptr,
         &error
     );
+
 
     if (error || !result) {
         std::cerr << "[PipeWire] CreateSession failed: " << (error ? error->message : "unknown") << "\n";
