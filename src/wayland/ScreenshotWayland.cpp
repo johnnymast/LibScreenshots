@@ -30,6 +30,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
     // Prepare options
     GVariantBuilder options;
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
+    g_variant_builder_add(&options, "{sv}", "modal", g_variant_new_boolean(false));
     g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(false));
     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
 
