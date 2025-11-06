@@ -130,9 +130,14 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
     g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(TRUE));
 
+    GVariant *parameters = g_variant_new("(sa{sv})", "", &options);  // ✅ Correct tuple
+
     std::cout << "[PipeWire] before g_variant_new" << "\n";
-    GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));  // ✅ Correct for your portal
+
+    GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));
+
     std::cout << "[PipeWire] after g_variant_new" << "\n";
+
 
     std::cout << "[PipeWire] 📤 Calling CreateSession...\n";
     GVariant *result = g_dbus_connection_call_sync(
@@ -281,7 +286,6 @@ bool ScreenshotPipeWire::requestScreenCast() {
     g_object_unref(connection);
     return true;
 }
-
 
 void ScreenshotPipeWire::onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param) {
     auto *self = static_cast<ScreenshotPipeWire*>(data);
