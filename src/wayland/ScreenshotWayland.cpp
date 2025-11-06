@@ -12,8 +12,6 @@
 #include <chrono>
 #include <filesystem>
 
-#include <memory> // for std::unique_ptr if needed
-
 namespace fs = std::filesystem;
 using namespace LibScreenshots;
 using LibGraphics::Image;
@@ -75,8 +73,6 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
 
     auto context = new Context{ resultData, loop };
 
-    // Internal helper to transfer image data safely
-    // This keeps the existing API where we fill context->first->image and metadata.
     g_dbus_connection_signal_subscribe(
         connection,
         "org.freedesktop.portal.Desktop",
@@ -91,18 +87,32 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
 
             guint32 response_code;
             GVariant *results;
+            // Read the body immediately into local values to avoid dangling pointers
             g_variant_get(parameters, "(u@a{sv})", &response_code, &results);
+
+            // Guard against unexpected data
+            if (results == nullptr) {
+                if (context && context->second && g_main_loop_is_running(context->second)) {
+                    g_main_loop_quit(context->second);
+                }
+                if (results) g_variant_unref(results);
+                return;
+            }
 
             if (response_code != 0) {
                 if (context && context->second && g_main_loop_is_running(context->second)) {
                     g_main_loop_quit(context->second);
                 }
+                g_variant_unref(results);
                 return;
             }
 
             GVariant *uri_variant = g_variant_lookup_value(results, "uri", G_VARIANT_TYPE_STRING);
-            const gchar *uri = g_variant_get_string(uri_variant, nullptr);
-            std::string path = uri;
+            const gchar *uri = nullptr;
+            if (uri_variant != nullptr) {
+                uri = g_variant_get_string(uri_variant, nullptr);
+            }
+            std::string path = uri ? uri : "";
             if (path.rfind("file://", 0) == 0) path = path.substr(7);
 
             int retries = 10;
@@ -114,6 +124,8 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
                 if (context && context->second && g_main_loop_is_running(context->second)) {
                     g_main_loop_quit(context->second);
                 }
+                if (uri_variant) g_variant_unref(uri_variant);
+                g_variant_unref(results);
                 return;
             }
 
@@ -122,6 +134,8 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
                 if (context && context->second && g_main_loop_is_running(context->second)) {
                     g_main_loop_quit(context->second);
                 }
+                if (uri_variant) g_variant_unref(uri_variant);
+                g_variant_unref(results);
                 return;
             }
 
@@ -141,6 +155,10 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
             } catch (const std::exception &e) {
                 std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
             }
+
+            // Cleanup body data now that we've copied what we need
+            if (uri_variant) g_variant_unref(uri_variant);
+            g_variant_unref(results);
 
             if (context && context->second && g_main_loop_is_running(context->second)) {
                 g_main_loop_quit(context->second);
@@ -169,6 +187,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
 ScreenshotResult ScreenshotWayland::captureRegion(const int x, const int y, const int width, const int height) {
     const ScreenshotResult full = captureScreen();
 
+    // Important: this line is included per request
     Image cropped = full.image.crop(x, y, width, height);
 
     ScreenshotResult region;
