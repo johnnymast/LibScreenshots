@@ -123,14 +123,14 @@ bool ScreenshotPipeWire::requestScreenCast() {
     // CreateSession
     GVariantBuilder options;
     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
-    g_variant_builder_add(&options, "{sv}", "modal", g_variant_new_boolean(false));
+    g_variant_builder_add(&options, "{sv}", "modal", g_variant_new_boolean(true));
     g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(true));
     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
 
     std::cout << "[PipeWire] before g_variant_new" << "\n";
 
    // GVariant *parameters = g_variant_new("(sa{sv})", "", &options);
-   GVariant *parameters = g_variant_new("(a{sv})", "", &options);
+   GVariant *parameters = g_variant_new("(a{sv})", "", g_variant_builder_end(&options));
 
     std::cout << "[PipeWire] after g_variant_new" << "\n";
 
