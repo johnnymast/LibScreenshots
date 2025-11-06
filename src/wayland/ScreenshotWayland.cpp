@@ -1,7 +1,7 @@
 #include "ScreenshotWayland.hpp"
 #include "LibScreenshots/ScreenshotResult.hpp"
 
-#if WAYLAND
+#if HAVE_WAYLAND
 #include <glib.h>
 #include <gio/gio.h>
 
