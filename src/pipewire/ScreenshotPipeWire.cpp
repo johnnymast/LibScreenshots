@@ -133,6 +133,9 @@ bool ScreenshotPipeWire::requestScreenCast() {
 
     GVariant *params = g_variant_new("(a{sv})", g_variant_builder_end(&options));
 
+    std::cout << "[PipeWire] after g_variant_new" << "\n";
+
+
     std::cout << "[PipeWire] 📤 Calling CreateSession...\n";
     GVariant *result = g_dbus_connection_call_sync(
         connection,
