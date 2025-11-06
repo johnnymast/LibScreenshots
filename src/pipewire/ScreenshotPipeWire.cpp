@@ -121,7 +121,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     }
 
     // Genereer geldige token
-    std::string token = "libscreenshots_" + std::to_string(rand() % 100000);
+    std::string token = "libscreenshots";
     std::cout << "[PipeWire] 🧷 Using handle_token: " << token << "\n";
 
     // CreateSession
