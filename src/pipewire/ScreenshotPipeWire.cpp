@@ -239,7 +239,7 @@ bool ScreenshotPipeWire::requestScreenCast() {
     // Start
     GVariantBuilder startOptions;
     g_variant_builder_init(&startOptions, G_VARIANT_TYPE("a{sv}"));
-    g_variant_builder_add(&startOptions, "{sv}", "handle_token", g_variant_new_string(token.c_str()));
+    g_variant_builder_add(&startOptions, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
 
     std::cout << "[PipeWire] 📤 Calling Start...\n";
     GUnixFDList *fd_list = nullptr;
