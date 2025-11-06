@@ -30,50 +30,51 @@ ScreenshotPipeWire &ScreenshotPipeWire::getInstance() {
 }
 
 bool ScreenshotPipeWire::initializePipeWire() {
-    if (initialized_) return true;
-
-    // Request screen cast session from portal
+    // Don't reuse sessions - request a fresh one each time
     if (!requestScreenCast()) {
         std::cerr << "[PipeWire] Failed to request screencast session\n";
         return false;
     }
 
-    // Create PipeWire main loop
-    loop_ = pw_thread_loop_new("screenshot-loop", nullptr);
+    // Create PipeWire main loop only if not already created
     if (!loop_) {
-        std::cerr << "[PipeWire] Failed to create thread loop\n";
-        return false;
-    }
+        loop_ = pw_thread_loop_new("screenshot-loop", nullptr);
+        if (!loop_) {
+            std::cerr << "[PipeWire] Failed to create thread loop\n";
+            return false;
+        }
 
-    context_ = pw_context_new(pw_thread_loop_get_loop(loop_), nullptr, 0);
-    if (!context_) {
-        std::cerr << "[PipeWire] Failed to create context\n";
-        cleanup();
-        return false;
-    }
+        context_ = pw_context_new(pw_thread_loop_get_loop(loop_), nullptr, 0);
+        if (!context_) {
+            std::cerr << "[PipeWire] Failed to create context\n";
+            cleanup();
+            return false;
+        }
 
-    if (pw_thread_loop_start(loop_) < 0) {
-        std::cerr << "[PipeWire] Failed to start thread loop\n";
-        cleanup();
-        return false;
-    }
+        if (pw_thread_loop_start(loop_) < 0) {
+            std::cerr << "[PipeWire] Failed to start thread loop\n";
+            cleanup();
+            return false;
+        }
 
-    pw_thread_loop_lock(loop_);
+        pw_thread_loop_lock(loop_);
 
-    core_ = pw_context_connect(context_, nullptr, 0);
-    if (!core_) {
-        std::cerr << "[PipeWire] Failed to connect to PipeWire\n";
+        core_ = pw_context_connect(context_, nullptr, 0);
+        if (!core_) {
+            std::cerr << "[PipeWire] Failed to connect to PipeWire\n";
+            pw_thread_loop_unlock(loop_);
+            cleanup();
+            return false;
+        }
+
         pw_thread_loop_unlock(loop_);
-        cleanup();
-        return false;
     }
-
-    pw_thread_loop_unlock(loop_);
 
     initialized_ = true;
     std::cout << "[PipeWire] ✅ Initialized successfully\n";
     return true;
 }
+
 
 bool ScreenshotPipeWire::requestScreenCast() {
     GError *error = nullptr;
@@ -390,6 +391,11 @@ ScreenshotResult ScreenshotPipeWire::captureFrame() {
 }
 
 ScreenshotResult ScreenshotPipeWire::captureScreen() {
+    // Reset initialized flag so we request a new session each time
+    initialized_ = false;
+    sessionHandle_.clear();
+    pipewireNode_ = 0;
+
     return captureFrame();
 }
 
