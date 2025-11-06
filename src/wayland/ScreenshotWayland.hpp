@@ -3,82 +3,13 @@
 #include <LibScreenshots/ScreenshotResult.hpp>
 #include <LibScreenshots/IScreenshotBackend.hpp>
 
-#ifdef HAVE_PIPEWIRE
-#include <pipewire/pipewire.h>
-#include <spa/param/video/format-utils.h>
-#include <spa/param/props.h>
-#endif
-
-#include <memory>
-#include <vector>
-#include <mutex>
-#include <condition_variable>
-
 namespace LibScreenshots {
 
-    class ScreenshotPipeWire : public IScreenshotBackend {
+    class ScreenshotWayland : public IScreenshotBackend {
     public:
-        static ScreenshotPipeWire &getInstance();
+        static ScreenshotWayland &getInstance();
 
         ScreenshotResult captureScreen() override;
-        ScreenshotResult captureRegion(int x, int y, int width, int height) override;
-
-        ~ScreenshotPipeWire();
-
-    private:
-        ScreenshotPipeWire();
-
-        // Delete copy and move to enforce singleton
-        ScreenshotPipeWire(const ScreenshotPipeWire&) = delete;
-        ScreenshotPipeWire& operator=(const ScreenshotPipeWire&) = delete;
-        ScreenshotPipeWire(ScreenshotPipeWire&&) = delete;
-        ScreenshotPipeWire& operator=(ScreenshotPipeWire&&) = delete;
-
-        // Initialization
-        bool initializePipeWire();
-        bool requestScreenCast();
-        void cleanup();
-
-        // Stream handling
-        void startStream();
-        void stopStream();
-
-        // Capture single frame
-        ScreenshotResult captureFrame();
-
-#ifdef HAVE_PIPEWIRE
-        // PipeWire state
-        struct pw_thread_loop *loop_ = nullptr;
-        struct pw_context *context_ = nullptr;
-        struct pw_core *core_ = nullptr;
-        struct pw_stream *stream_ = nullptr;
-
-        // Stream data
-        std::vector<uint8_t> frameBuffer_;
-        int frameWidth_ = 0;
-        int frameHeight_ = 0;
-        int frameStride_ = 0;
-        uint32_t frameFormat_ = 0;
-
-        // Synchronization
-        std::mutex frameMutex_;
-        std::condition_variable frameCv_;
-        bool frameReady_ = false;
-        bool streamActive_ = false;
-
-        // Portal session
-        std::string sessionHandle_;
-        int pipewireFd_ = -1;
-        uint32_t pipewireNode_ = 0;
-
-        // Static callbacks
-        static void onStreamParamChanged(void *data, uint32_t id, const struct spa_pod *param);
-        static void onStreamProcess(void *data);
-        static void onStreamStateChanged(void *data, enum pw_stream_state old,
-                                         enum pw_stream_state state, const char *error);
-#endif
-
-        bool initialized_ = false;
+        ScreenshotResult captureRegion(int x, int y, int width, int height)  override;
     };
-
 } // namespace LibScreenshots
