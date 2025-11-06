@@ -71,6 +71,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
         bool completed;
     };
 
+
     auto context = new Context{&resultData, loop, false};
 
     g_dbus_connection_signal_subscribe(
