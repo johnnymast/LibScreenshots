@@ -1,4 +1,6 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT WAYLAND)
+    message(STATUS "✅ Configuring LibScreenshots to use X11 backend")
+
     find_package(OpenCV REQUIRED)
     find_package(X11 REQUIRED)
 

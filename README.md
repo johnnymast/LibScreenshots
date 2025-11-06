@@ -15,6 +15,12 @@ sudo pacman -S wayland wayland-protocols dbus dbus-glib glib2 libxkbcommon gtk3 
 
 ```
 
+## PipeWire
+
+```bash
+sudo pacman -S pipewire libpipewire xdg-desktop-portal xdg-desktop-portal-gnome
+
+```
 
 ## X11
 

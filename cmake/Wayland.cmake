@@ -1,12 +1,12 @@
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WAYLAND)
-    message(STATUS "✅ Configuring Wayland backend via DBus portal")
+    message(STATUS "✅ Configuring LibScreenshots to use Wayland backend via DBus portal")
 
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(DBUS REQUIRED dbus-1)
     pkg_check_modules(GIO REQUIRED gio-2.0)
     pkg_check_modules(GLIB REQUIRED glib-2.0)
 
-    target_compile_definitions(${PROJECT_NAME} PRIVATE WAYLAND)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WAYLAND)
 
     target_include_directories(${PROJECT_NAME} PRIVATE
             ${DBUS_INCLUDE_DIRS}

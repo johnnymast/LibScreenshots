@@ -9,6 +9,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Optional Wayland toggle
 option(WAYLAND "Enable Wayland support via DBus portal" ON)
+option(PIPEWIRE "Enable PipeWire support for screen capture" OFF)
 
 # Core library
 add_library(${PROJECT_NAME} SHARED

@@ -159,7 +159,6 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
 ScreenshotResult ScreenshotWayland::captureRegion(const int x, const int y, const int width, const int height) {
     const ScreenshotResult full = captureScreen();
 
-    // Important: this line is included per request
     Image cropped = full.image.crop(x, y, width, height);
 
     ScreenshotResult region;

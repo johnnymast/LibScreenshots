@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cstring>
 #include <fcntl.h>
+#include <thread>
 #include <unistd.h>
 
 using namespace LibScreenshots;
@@ -278,10 +279,18 @@ void ScreenshotPipeWire::startStream() {
     pw_thread_loop_lock(loop_);
 
     static const struct pw_stream_events stream_events = {
-        .version = PW_VERSION_STREAM_EVENTS,
-        .param_changed = onStreamParamChanged,
-        .process = onStreamProcess,
-        .state_changed = onStreamStateChanged,
+        PW_VERSION_STREAM_EVENTS,  // version
+        nullptr,                    // destroy
+        onStreamStateChanged,       // state_changed
+        nullptr,                    // control_info
+        nullptr,                    // io_changed
+        onStreamParamChanged,       // param_changed
+        nullptr,                    // add_buffer
+        nullptr,                    // remove_buffer
+        onStreamProcess,            // process
+        nullptr,                    // drained
+        nullptr,                    // command
+        nullptr,                    // trigger_done
     };
 
     struct pw_properties *props = pw_properties_new(
