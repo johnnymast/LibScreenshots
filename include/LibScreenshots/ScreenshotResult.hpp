@@ -10,5 +10,9 @@ namespace LibScreenshots {
         int width;
         int height;
         int channels;
+
+        [[nodiscard]] bool isValid() const {
+            return image.isValid();
+        }
     };
 }
