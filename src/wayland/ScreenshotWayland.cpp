@@ -33,142 +33,142 @@ static std::string run_command(const std::string &cmd, const std::string &outfil
 }
 
 ScreenshotResult ScreenshotWayland::captureScreen() {
-    GError *error = nullptr;
-    GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
-    if (error) throw std::runtime_error(error->message);
-
-    // Check if Screenshot interface exists
-    GDBusProxy *proxy = g_dbus_proxy_new_sync(
-        connection,
-        G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
-        nullptr,
-        "org.freedesktop.portal.Desktop",
-        "/org/freedesktop/portal/desktop",
-        "org.freedesktop.portal.Screenshot",
-        nullptr,
-        &error
-    );
+    // GError *error = nullptr;
+    // GDBusConnection *connection = g_bus_get_sync(G_BUS_TYPE_SESSION, nullptr, &error);
+    // if (error) throw std::runtime_error(error->message);
+    //
+    // // Check if Screenshot interface exists
+    // GDBusProxy *proxy = g_dbus_proxy_new_sync(
+    //     connection,
+    //     G_DBUS_PROXY_FLAGS_DO_NOT_LOAD_PROPERTIES,
+    //     nullptr,
+    //     "org.freedesktop.portal.Desktop",
+    //     "/org/freedesktop/portal/desktop",
+    //     "org.freedesktop.portal.Screenshot",
+    //     nullptr,
+    //     &error
+    // );
 
     ScreenshotResult resultData;
 
-
-    proxy = nullptr;
-
-    if (proxy) {
-        // Portal screenshot path
-        GVariantBuilder options;
-        g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
-        g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(true));
-        g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
-
-        GVariant *parameters = g_variant_new("(sa{sv})", "", &options);
-
-        GVariant *result = g_dbus_connection_call_sync(
-            connection,
-            "org.freedesktop.portal.Desktop",
-            "/org/freedesktop/portal/desktop",
-            "org.freedesktop.portal.Screenshot",
-            "Screenshot",
-            parameters,
-            G_VARIANT_TYPE("(o)"),
-            G_DBUS_CALL_FLAGS_NONE,
-            -1,
-            nullptr,
-            &error
-        );
-        if (error) throw std::runtime_error(error->message);
-
-        const gchar *request_path;
-        g_variant_get(result, "(o)", &request_path);
-
-        GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
-
-        struct Context {
-            ScreenshotResult *result;
-            GMainLoop *loop;
-            bool completed;
-        };
-        auto context = new Context{&resultData, loop, false};
-
-        guint subscription = g_dbus_connection_signal_subscribe(
-            connection,
-            "org.freedesktop.portal.Desktop",
-            "org.freedesktop.portal.Request",
-            "Response",
-            request_path,
-            nullptr,
-            G_DBUS_SIGNAL_FLAGS_NONE,
-            [](GDBusConnection *, const gchar *, const gchar *, const gchar *, const gchar *,
-               GVariant *parameters, gpointer user_data) {
-                auto *context = static_cast<Context *>(user_data);
-                if (context->completed) return;
-
-                guint32 response_code;
-                GVariant *results = nullptr;
-                g_variant_get(parameters, "(u@a{sv})", &response_code, &results);
-
-                if (results == nullptr || response_code != 0) {
-                    if (results) g_variant_unref(results);
-                    context->completed = true;
-                    g_main_loop_quit(context->loop);
-                    return;
-                }
-
-                GVariant *uri_variant = g_variant_lookup_value(results, "uri", G_VARIANT_TYPE_STRING);
-                if (!uri_variant) {
-                    g_variant_unref(results);
-                    context->completed = true;
-                    g_main_loop_quit(context->loop);
-                    return;
-                }
-
-                const gchar *uri = g_variant_get_string(uri_variant, nullptr);
-                std::string path = uri ? uri : "";
-                if (path.rfind("file://", 0) == 0) path = path.substr(7);
-
-                // Wait for file
-                int retries = 50;
-                while (retries-- > 0 && !fs::exists(path)) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                }
-
-                if (fs::exists(path)) {
-                    std::ifstream file(path, std::ios::binary);
-                    if (file) {
-                        std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), {});
-                        try {
-                            auto img = Image::load_from_memory(buffer.data(), buffer.size());
-                            context->result->image = std::move(img);
-                            context->result->width = context->result->image.width;
-                            context->result->height = context->result->image.height;
-                            context->result->channels = context->result->image.channels;
-                        } catch (const std::exception &e) {
-                            std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
-                        }
-                    }
-                }
-
-                g_variant_unref(uri_variant);
-                g_variant_unref(results);
-
-                context->completed = true;
-                g_main_loop_quit(context->loop);
-            },
-            context,
-            [](gpointer data) {
-                auto *context = static_cast<Context *>(data);
-                delete context;
-            }
-        );
-
-        g_main_loop_run(loop);
-        g_dbus_connection_signal_unsubscribe(connection, subscription);
-        g_main_loop_unref(loop);
-        g_variant_unref(result);
-        g_object_unref(proxy);
-
-        return resultData;
-    }
+    //
+    // proxy = nullptr;
+    //
+    // if (proxy) {
+    //     // Portal screenshot path
+    //     GVariantBuilder options;
+    //     g_variant_builder_init(&options, G_VARIANT_TYPE("a{sv}"));
+    //     g_variant_builder_add(&options, "{sv}", "interactive", g_variant_new_boolean(true));
+    //     g_variant_builder_add(&options, "{sv}", "handle_token", g_variant_new_string("libscreenshots"));
+    //
+    //     GVariant *parameters = g_variant_new("(sa{sv})", "", &options);
+    //
+    //     GVariant *result = g_dbus_connection_call_sync(
+    //         connection,
+    //         "org.freedesktop.portal.Desktop",
+    //         "/org/freedesktop/portal/desktop",
+    //         "org.freedesktop.portal.Screenshot",
+    //         "Screenshot",
+    //         parameters,
+    //         G_VARIANT_TYPE("(o)"),
+    //         G_DBUS_CALL_FLAGS_NONE,
+    //         -1,
+    //         nullptr,
+    //         &error
+    //     );
+    //     if (error) throw std::runtime_error(error->message);
+    //
+    //     const gchar *request_path;
+    //     g_variant_get(result, "(o)", &request_path);
+    //
+    //     GMainLoop *loop = g_main_loop_new(nullptr, FALSE);
+    //
+    //     struct Context {
+    //         ScreenshotResult *result;
+    //         GMainLoop *loop;
+    //         bool completed;
+    //     };
+    //     auto context = new Context{&resultData, loop, false};
+    //
+    //     guint subscription = g_dbus_connection_signal_subscribe(
+    //         connection,
+    //         "org.freedesktop.portal.Desktop",
+    //         "org.freedesktop.portal.Request",
+    //         "Response",
+    //         request_path,
+    //         nullptr,
+    //         G_DBUS_SIGNAL_FLAGS_NONE,
+    //         [](GDBusConnection *, const gchar *, const gchar *, const gchar *, const gchar *,
+    //            GVariant *parameters, gpointer user_data) {
+    //             auto *context = static_cast<Context *>(user_data);
+    //             if (context->completed) return;
+    //
+    //             guint32 response_code;
+    //             GVariant *results = nullptr;
+    //             g_variant_get(parameters, "(u@a{sv})", &response_code, &results);
+    //
+    //             if (results == nullptr || response_code != 0) {
+    //                 if (results) g_variant_unref(results);
+    //                 context->completed = true;
+    //                 g_main_loop_quit(context->loop);
+    //                 return;
+    //             }
+    //
+    //             GVariant *uri_variant = g_variant_lookup_value(results, "uri", G_VARIANT_TYPE_STRING);
+    //             if (!uri_variant) {
+    //                 g_variant_unref(results);
+    //                 context->completed = true;
+    //                 g_main_loop_quit(context->loop);
+    //                 return;
+    //             }
+    //
+    //             const gchar *uri = g_variant_get_string(uri_variant, nullptr);
+    //             std::string path = uri ? uri : "";
+    //             if (path.rfind("file://", 0) == 0) path = path.substr(7);
+    //
+    //             // Wait for file
+    //             int retries = 50;
+    //             while (retries-- > 0 && !fs::exists(path)) {
+    //                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    //             }
+    //
+    //             if (fs::exists(path)) {
+    //                 std::ifstream file(path, std::ios::binary);
+    //                 if (file) {
+    //                     std::vector<unsigned char> buffer((std::istreambuf_iterator<char>(file)), {});
+    //                     try {
+    //                         auto img = Image::load_from_memory(buffer.data(), buffer.size());
+    //                         context->result->image = std::move(img);
+    //                         context->result->width = context->result->image.width;
+    //                         context->result->height = context->result->image.height;
+    //                         context->result->channels = context->result->image.channels;
+    //                     } catch (const std::exception &e) {
+    //                         std::cerr << "[ScreenshotWayland] ❌ Failed to decode image: " << e.what() << "\n";
+    //                     }
+    //                 }
+    //             }
+    //
+    //             g_variant_unref(uri_variant);
+    //             g_variant_unref(results);
+    //
+    //             context->completed = true;
+    //             g_main_loop_quit(context->loop);
+    //         },
+    //         context,
+    //         [](gpointer data) {
+    //             auto *context = static_cast<Context *>(data);
+    //             delete context;
+    //         }
+    //     );
+    //
+    //     g_main_loop_run(loop);
+    //     g_dbus_connection_signal_unsubscribe(connection, subscription);
+    //     g_main_loop_unref(loop);
+    //     g_variant_unref(result);
+    //     g_object_unref(proxy);
+    //
+    //     return resultData;
+    // }
 
     // Fallbacks if portal not available
     std::string tmpfile = "/tmp/libscreenshot.png";
@@ -176,7 +176,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
 
     // Try KDE Spectacle
     // path = run_command("spectacle -b -n -o " + tmpfile, tmpfile);
-std::cout << "Trying Spectacle: " << "spectacle -b -n -a -o " + tmpfile << std::endl;
+    std::cout << "Trying Spectacle: " << "spectacle -b -n -a -o " + tmpfile << std::endl;
     path = run_command("spectacle -b -n -a -o " + tmpfile, tmpfile);
     if (!path.empty()) {
         std::ifstream file(path, std::ios::binary);
