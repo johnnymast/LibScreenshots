@@ -176,6 +176,7 @@ ScreenshotResult ScreenshotWayland::captureScreen() {
 
     // Try KDE Spectacle
     // path = run_command("spectacle -b -n -o " + tmpfile, tmpfile);
+std::cout << "Trying Spectacle: " << "spectacle -b -n -a -o " + tmpfile << std::endl;
     path = run_command("spectacle -b -n -a -o " + tmpfile, tmpfile);
     if (!path.empty()) {
         std::ifstream file(path, std::ios::binary);
