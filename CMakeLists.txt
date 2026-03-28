@@ -6,11 +6,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# Build flags
-option(X11      "Build for X11" ON)
-option(WAYLAND  "Build for Wayland with DBus" OFF)
-option(WINDOWS  "Build for Windows" OFF)
-option(PIPEWIRE "Enable PipeWire with DBUS" OFF)
+option(X11_SCREENSHOTS      "Build for X11" ON)
+
+if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WAYLAND_SCREENSHOTS OR PIPEWIRE_SCREENSHOTS))
+    message(FATAL_ERROR
+            "LibScreenshots: No backend selected! Enable at least one of: "
+            "WINDOWS_SCREENSHOTS, X11_SCREENSHOTS, WAYLAND_SCREENSHOTS, PIPEWIRE_SCREENSHOTS."
+    )
+endif()
+
 
 # Core library
 add_library(${PROJECT_NAME} SHARED
@@ -39,19 +43,19 @@ add_library(${PROJECT_NAME} SHARED
 )
 
 # Platform detection
-if (X11)
+if (X11_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_X11)
 endif()
 
-if (WAYLAND)
+if (WAYLAND_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WAYLAND)
 endif()
 
-if (PIPEWIRE)
+if (PIPEWIRE_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_PIPEWIRE)
 endif()
 
-if (WINDOWS)
+if (WINDOWS_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WINDOW)
 endif()
 
@@ -59,7 +63,7 @@ include(Graphics)
 #include(Windows)
 #include(Wayland)
 #include(PipeWire)
-include(X11)
+#include(X11)
 
 set(LIBGRAPHICS_INCLUDE_DIRS "/home/johnny/CLionProjects/shot/build/_deps/libgraphics-src/include")
 message(STATUS "🍺 LIBGRAPHICS_INCLUDE_DIRS = ${LIBGRAPHICS_INCLUDE_DIRS}")

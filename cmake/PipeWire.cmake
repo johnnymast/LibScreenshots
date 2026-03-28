@@ -1,4 +1,4 @@
-if(PIPEWIRE)
+if(PIPEWIRE_SCREENSHOTS)
     message(STATUS "✅ Configuring LibScreenshots to use Pipewire backend")
 
     find_package(PkgConfig REQUIRED)

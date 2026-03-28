@@ -1,4 +1,4 @@
-if(WAYLAND)
+if(WAYLAND_SCREENSHOTS)
     message(STATUS "✅ Configuring LibScreenshots to use Wayland backend via DBus portal")
 
     find_package(PkgConfig REQUIRED)mz

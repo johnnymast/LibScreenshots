@@ -16,6 +16,7 @@ sudo pacman -S opencv-cuda cuda
 ## Wayland 
 
 ```bash
+sudo pacman -S xdg-desktop-portal-hyprland
 sudo pacman -S wayland wayland-protocols dbus dbus-glib glib2 libxkbcommon gtk3 xdg-desktop-portal xdg-desktop-portal-wlr pkgconf glib2
 
 ```
