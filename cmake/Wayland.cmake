@@ -1,7 +1,7 @@
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WAYLAND)
+if(WAYLAND)
     message(STATUS "✅ Configuring LibScreenshots to use Wayland backend via DBus portal")
 
-    find_package(PkgConfig REQUIRED)
+    find_package(PkgConfig REQUIRED)mz
     pkg_check_modules(DBUS REQUIRED dbus-1)
     pkg_check_modules(GIO REQUIRED gio-2.0)
     pkg_check_modules(GLIB REQUIRED glib-2.0)

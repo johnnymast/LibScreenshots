@@ -7,6 +7,11 @@
 [![Build](https://github.com/johnnymast/LibScreenshots/actions/workflows/build.yml/badge.svg)](https://github.com/johnnymast/LibScreenshots/actions/workflows/build.yml)
 </div>
 
+## General
+
+```bash
+sudo pacman -S opencv-cuda cuda
+```
 
 ## Wayland 
 
@@ -26,5 +31,5 @@ sudo pacman -S pipewire libpipewire xdg-desktop-portal xdg-desktop-portal-gnome
 
 
 ```bash
-sudo pacman -S libx11 libx11-devel opencv-cuda
+sudo pacman -S libx11 
 ```

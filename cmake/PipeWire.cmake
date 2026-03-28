@@ -1,10 +1,5 @@
-
-# PipeWire.cmake - Find PipeWire libraries
-
-
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND PIPEWIRE)
-    message(STATUS "✅ Configuring LibScreenshots to use Pipewrite backend")
+if(PIPEWIRE)
+    message(STATUS "✅ Configuring LibScreenshots to use Pipewire backend")
 
     find_package(PkgConfig REQUIRED)
 

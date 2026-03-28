@@ -1,6 +1,6 @@
 #include "ScreenshotX11.hpp"
 
-#if defined(HAVE_X11)
+#if HAVE_X11
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core/mat.hpp>
