@@ -26,5 +26,5 @@ sudo pacman -S pipewire libpipewire xdg-desktop-portal xdg-desktop-portal-gnome
 
 
 ```bash
-sudo pacman -S libx11 libx11-devel
+sudo pacman -S libx11 libx11-devel opencv-cuda
 ```

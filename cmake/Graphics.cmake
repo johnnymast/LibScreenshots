@@ -15,4 +15,5 @@ get_target_property(LIBGRAPHICS_INCLUDE_DIRS LibGraphics INTERFACE_INCLUDE_DIREC
 if(NOT LIBGRAPHICS_INCLUDE_DIRS)
     set(LIBGRAPHICS_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/../Graphics/include")
 endif()
+
 target_include_directories(LibScreenshots PUBLIC ${LIBGRAPHICS_INCLUDE_DIRS})
