@@ -1,7 +1,7 @@
 if(WAYLAND_SCREENSHOTS)
     message(STATUS "✅ Configuring LibScreenshots to use Wayland backend via DBus portal")
 
-    find_package(PkgConfig REQUIRED)mz
+    find_package(PkgConfig REQUIRED)
     pkg_check_modules(DBUS REQUIRED dbus-1)
     pkg_check_modules(GIO REQUIRED gio-2.0)
     pkg_check_modules(GLIB REQUIRED glib-2.0)
