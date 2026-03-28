@@ -58,9 +58,9 @@ if (WINDOWS_SCREENSHOTS)
 endif()
 
 include(Graphics)
-#include(Windows)
-#include(Wayland)
-#include(PipeWire)
+include(Windows)
+include(Wayland)
+include(PipeWire)
 include(X11)
 
 #set(LIBGRAPHICS_INCLUDE_DIRS "/home/johnny/CLionProjects/shot/build/_deps/libgraphics-src/include")
