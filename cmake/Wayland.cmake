@@ -6,8 +6,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND WAYLAND)
     pkg_check_modules(GIO REQUIRED gio-2.0)
     pkg_check_modules(GLIB REQUIRED glib-2.0)
 
-    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WAYLAND)
-
     target_include_directories(${PROJECT_NAME} PRIVATE
             ${DBUS_INCLUDE_DIRS}
             ${GIO_INCLUDE_DIRS}

@@ -1,5 +1,6 @@
 #include "ScreenshotX11.hpp"
 
+#if defined(HAVE_X11)
 
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core/mat.hpp>
@@ -16,8 +17,6 @@
 using namespace LibScreenshots;
 using LibGraphics::Image;
 using LibGraphics::Utils::Converter;
-
-
 
 std::pair<int, int> GetScreenResolution() {
     Display* display = XOpenDisplay(nullptr);
@@ -137,3 +136,4 @@ ScreenshotResult ScreenshotX11::captureRegion(const int x, const int y, const in
 
     return region;
 }
+#endif
