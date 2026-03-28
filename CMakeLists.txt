@@ -6,8 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-option(X11_SCREENSHOTS      "Build for X11" ON)
-
 if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WAYLAND_SCREENSHOTS OR PIPEWIRE_SCREENSHOTS))
     message(FATAL_ERROR
             "LibScreenshots: No backend selected! Enable at least one of: "
@@ -63,10 +61,10 @@ include(Graphics)
 #include(Windows)
 #include(Wayland)
 #include(PipeWire)
-#include(X11)
+include(X11)
 
-set(LIBGRAPHICS_INCLUDE_DIRS "/home/johnny/CLionProjects/shot/build/_deps/libgraphics-src/include")
-message(STATUS "🍺 LIBGRAPHICS_INCLUDE_DIRS = ${LIBGRAPHICS_INCLUDE_DIRS}")
+#set(LIBGRAPHICS_INCLUDE_DIRS "/home/johnny/CLionProjects/shot/build/_deps/libgraphics-src/include")
+#message(STATUS "🍺 LIBGRAPHICS_INCLUDE_DIRS = ${LIBGRAPHICS_INCLUDE_DIRS}")
 
 target_include_directories(${PROJECT_NAME} PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
