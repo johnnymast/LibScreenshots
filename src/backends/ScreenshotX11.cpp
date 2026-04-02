@@ -1,4 +1,4 @@
-#include "ScreenshotX11.hpp"
+#include "../../include/private/LibScreenshots/backends/ScreenshotX11.hpp"
 
 #if HAVE_X11
 

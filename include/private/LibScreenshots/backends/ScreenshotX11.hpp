@@ -1,5 +1,7 @@
 #pragma once
 
+#if HAVE_X11
+
 #include <LibScreenshots/ScreenshotResult.hpp>
 #include <LibScreenshots/IScreenshotBackend.hpp>
 
@@ -12,3 +14,4 @@ namespace LibScreenshots {
         ScreenshotResult captureRegion(int x, int y, int width, int height)  override;
     };
 } // namespace LibScreenshots
+#endif

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LibScreenshots/internals/export.hpp"
+#include "LibScreenshots/export.hpp"
 #include "LibScreenshots/ScreenshotResult.hpp"
 
 using LibScreenshots::ScreenshotResult;

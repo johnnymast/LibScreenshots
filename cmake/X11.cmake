@@ -1,5 +1,5 @@
 if(X11_SCREENSHOTS)
-    message(STATUS "✅ Configuring LibScreenshots to use X11 backend")
+    message(STATUS "✅  Configuring LibScreenshots to use X11 backend")
 
     find_package(PkgConfig REQUIRED)
     find_package(OpenCV REQUIRED)

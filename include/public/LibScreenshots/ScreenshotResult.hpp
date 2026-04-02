@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LibScreenshots/internals/export.hpp"
+#include "LibScreenshots/export.hpp"
 #include <LibGraphics/Image.hpp>
 
 namespace LibScreenshots {

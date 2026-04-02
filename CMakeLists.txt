@@ -6,68 +6,80 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WAYLAND_SCREENSHOTS OR PIPEWIRE_SCREENSHOTS))
+# Require at least one backend
+if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOTS))
     message(FATAL_ERROR
             "LibScreenshots: No backend selected! Enable at least one of: "
-            "WINDOWS_SCREENSHOTS, X11_SCREENSHOTS, WAYLAND_SCREENSHOTS, PIPEWIRE_SCREENSHOTS."
+            "WINDOWS_SCREENSHOTS, X11_SCREENSHOTS, WLROOTS_SCREEN_COPY_SCREENSHOTS."
     )
 endif()
 
-
-# Core library
+# Core library (backend‑agnostic sources only)
 add_library(${PROJECT_NAME} SHARED
         src/main.cpp
 
+        include/private/LibScreenshots/BackendSelector.hpp
 
-        include/LibScreenshots/internals/platform_dispatch.hpp
-        include/LibScreenshots/internals/export.hpp
-
-        include/LibScreenshots/IScreenshotBackend.hpp
-        include/LibScreenshots/ScreenshotResult.hpp
-
-        src/windows/ScreenshotWin32.hpp
-        src/windows/ScreenshotWin32.cpp
-
-        src/wayland/ScreenshotWayland.hpp
-        src/wayland/ScreenshotWayland.cpp
-
-        src/pipewire/ScreenshotPipeWire.hpp
-        src/pipewire/ScreenshotPipeWire.cpp
-
-        src/x11/ScreenshotX11.hpp
-        src/x11/ScreenshotX11.cpp
-
-        include/LibScreenshots.hpp
+        include/public/LibScreenshots/IScreenshotBackend.hpp
+        include/public/LibScreenshots/ScreenshotResult.hpp
+        include/public/LibScreenshots/export.hpp
+        include/public/LibScreenshots/LibScreenshots.hpp
 )
 
-# Platform detection
-if (X11_SCREENSHOTS)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_X11)
-endif()
+#
+# Backend selection
+#
 
-if (WAYLAND_SCREENSHOTS)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WAYLAND)
-endif()
-
-if (PIPEWIRE_SCREENSHOTS)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_PIPEWIRE)
-endif()
-
+# --- Windows backend ---
 if (WINDOWS_SCREENSHOTS)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WINDOW)
+    message(STATUS "🪟  Enabling Windows backend")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WINDOWS)
+
+    target_sources(${PROJECT_NAME} PRIVATE
+            include/private/LibScreenshots/backends/ScreenshotWindows.hpp
+            src/backends/ScreenshotWindows.cpp
+    )
+
+    include(Windows OPTIONAL)
 endif()
 
+# --- X11 backend ---
+if (X11_SCREENSHOTS)
+    message(STATUS "🖥️  Enabling X11 backend")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_X11)
+
+    target_sources(${PROJECT_NAME} PRIVATE
+            include/private/LibScreenshots/backends/ScreenshotX11.hpp
+            src/backends/ScreenshotX11.cpp
+    )
+
+    include(X11 OPTIONAL)
+endif()
+
+# --- Wayland backend ---
+if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
+    message(STATUS "📡  Enabling WLRoots Screen copy protocol")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WLROOTS_SCREEN_COPY)
+
+    target_sources(${PROJECT_NAME} PRIVATE
+            include/private/LibScreenshots/backends/ScreenshotWLRoots.hpp
+            src/backends/ScreenshotWLRoots.cpp
+    )
+
+    include(WLRoots OPTIONAL)
+
+endif()
+
+# Graphics dependency
 include(Graphics)
-include(Windows)
-include(Wayland)
-include(PipeWire)
-include(X11)
 
-#set(LIBGRAPHICS_INCLUDE_DIRS "/home/johnny/CLionProjects/shot/build/_deps/libgraphics-src/include")
-#message(STATUS "🍺 LIBGRAPHICS_INCLUDE_DIRS = ${LIBGRAPHICS_INCLUDE_DIRS}")
-
-target_include_directories(${PROJECT_NAME} PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+# Public include dirs
+target_include_directories(${PROJECT_NAME}
+        PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/public
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${LIBGRAPHICS_INCLUDE_DIRS}
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/private
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
