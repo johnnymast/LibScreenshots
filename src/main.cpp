@@ -1,17 +1,17 @@
-#include "LibScreenshots/LibScreenshots.hpp"
-#include "LibScreenshots/IScreenshotBackend.hpp"
-#include "LibScreenshots/BackendSelector.hpp"
+#include <LibScreenshots/BackendSelector.hpp>
+#include <LibGraphics/Image.hpp>
+#include <LibScreenshots/export.hpp>
 
 namespace LibScreenshots {
-    ScreenshotResult LIBSCREENSHOTS_EXPORT TakeScreenshot() {
-        auto& instance = Backend();  // Use reference, not copy
-        ScreenshotResult result = instance.captureScreen();
-        return result;
+
+    LibGraphics::Image LIBSCREENSHOTS_EXPORT TakeScreenshot()
+    {
+        return Backend().captureScreen().image;
     }
 
-    ScreenshotResult LIBSCREENSHOTS_EXPORT TakeScreenshot(const int x, const int y, const int width, const int height) {
-        auto& instance = Backend();  // Use reference, not copy
-        ScreenshotResult result = instance.captureRegion(x, y, width, height);
-        return result;
+    LibGraphics::Image LIBSCREENSHOTS_EXPORT TakeScreenshot(int x, int y, int width, int height)
+    {
+        return Backend().captureRegion(x, y, width, height).image;
     }
+
 }

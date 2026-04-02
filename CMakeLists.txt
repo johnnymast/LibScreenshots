@@ -19,11 +19,11 @@ add_library(${PROJECT_NAME} SHARED
         src/main.cpp
 
         include/private/LibScreenshots/BackendSelector.hpp
+        include/private/LibScreenshots/ScreenshotResult.hpp
 
         include/public/LibScreenshots/IScreenshotBackend.hpp
-        include/public/LibScreenshots/ScreenshotResult.hpp
-        include/public/LibScreenshots/export.hpp
         include/public/LibScreenshots/LibScreenshots.hpp
+        include/public/LibScreenshots/export.hpp
 )
 
 #
