@@ -17,7 +17,6 @@ file(MAKE_DIRECTORY ${GENERATED_PROTO_DIR})
 set(WLR_SCREENCOPY_HEADER ${GENERATED_PROTO_DIR}/wlr-screencopy-unstable-v1-client-protocol.h)
 set(WLR_SCREENCOPY_CODE   ${GENERATED_PROTO_DIR}/wlr-screencopy-unstable-v1-client-protocol.c)
 
-# Genereer header
 add_custom_command(
         OUTPUT ${WLR_SCREENCOPY_HEADER}
         COMMAND ${WAYLAND_SCANNER} client-header
@@ -26,7 +25,6 @@ add_custom_command(
         DEPENDS ${WLR_SCREENCOPY_XML}
 )
 
-# Genereer implementatie
 add_custom_command(
         OUTPUT ${WLR_SCREENCOPY_CODE}
         COMMAND ${WAYLAND_SCANNER} private-code
@@ -35,7 +33,6 @@ add_custom_command(
         DEPENDS ${WLR_SCREENCOPY_XML}
 )
 
-# Kleine library voor het protocol
 add_library(wlr_screencopy_proto STATIC
         ${WLR_SCREENCOPY_HEADER}
         ${WLR_SCREENCOPY_CODE}
@@ -44,22 +41,18 @@ add_library(wlr_screencopy_proto STATIC
 target_include_directories(wlr_screencopy_proto PUBLIC ${GENERATED_PROTO_DIR})
 target_link_libraries(wlr_screencopy_proto PUBLIC ${WAYLAND_CLIENT_LIBRARIES})
 
-# Backend define
 target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WAYLAND_SCREEN_COPY)
 
-# Include dirs
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${WAYLAND_CLIENT_INCLUDE_DIRS}
         ${GENERATED_PROTO_DIR}
 )
 
-# Link libs
 target_link_libraries(${PROJECT_NAME} PRIVATE
         ${WAYLAND_CLIENT_LIBRARIES}
         wlr_screencopy_proto
 )
 
-# Extra compile flags
 target_compile_options(${PROJECT_NAME} PRIVATE
         ${WAYLAND_CLIENT_CFLAGS_OTHER}
 )

@@ -7,8 +7,6 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-
-# Require at least one backend
 if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOTS))
     message(FATAL_ERROR
             "LibScreenshots: No backend selected! Enable at least one of: "
@@ -16,7 +14,6 @@ if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOT
     )
 endif()
 
-# Core library (backend‑agnostic sources only)
 add_library(${PROJECT_NAME} SHARED
         src/main.cpp
 
@@ -32,7 +29,6 @@ add_library(${PROJECT_NAME} SHARED
 # Backend selection
 #
 
-# --- Windows backend ---
 if (WINDOWS_SCREENSHOTS)
     message(STATUS "🪟  Enabling Windows backend")
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WINDOWS)
@@ -45,7 +41,6 @@ if (WINDOWS_SCREENSHOTS)
     include(Windows OPTIONAL)
 endif()
 
-# --- X11 backend ---
 if (X11_SCREENSHOTS)
     message(STATUS "🖥️  Enabling X11 backend")
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_X11)
@@ -58,7 +53,6 @@ if (X11_SCREENSHOTS)
     include(X11 OPTIONAL)
 endif()
 
-# --- Wayland backend ---
 if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
     message(STATUS "📡  Enabling WLRoots Screen copy protocol")
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WLROOTS_SCREEN_COPY)
@@ -72,10 +66,8 @@ if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
 
 endif()
 
-# Graphics dependency
 include(Graphics)
 
-# Public include dirs
 target_include_directories(${PROJECT_NAME}
         PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include/public
@@ -84,7 +76,6 @@ target_include_directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-# Link LibGraphics PUBLIC
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
         LibGraphics
