@@ -8,10 +8,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOTS))
-    message(FATAL_ERROR
-            "LibScreenshots: No backend selected! Enable at least one of: "
-            "WINDOWS_SCREENSHOTS, X11_SCREENSHOTS, WLROOTS_SCREEN_COPY_SCREENSHOTS."
-    )
+    message(STATUS "LibScreenshots: No backend selected — defaulting to WLROOTS_SCREEN_COPY_SCREENSHOTS=ON")
+    set(WLROOTS_SCREEN_COPY_SCREENSHOTS ON CACHE BOOL "Enable wlroots backend" FORCE)
 endif()
 
 add_library(${PROJECT_NAME} SHARED
