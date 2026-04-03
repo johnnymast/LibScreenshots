@@ -10,5 +10,3 @@ FetchContent_Declare(LibGraphics
 FetchContent_MakeAvailable(LibGraphics)
 
 target_link_libraries(LibScreenshots PUBLIC LibGraphics)
-
-target_include_directories(LibScreenshots PUBLIC ${LIBGRAPHICS_INCLUDE_DIRS})
