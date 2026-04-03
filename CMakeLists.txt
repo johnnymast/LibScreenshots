@@ -80,3 +80,51 @@ target_link_libraries(${PROJECT_NAME}
         PUBLIC
         LibGraphics
 )
+
+
+# ============================================
+# Install LibGraphics
+# ============================================
+
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
+# 1. Install the library
+install(TARGETS LibGraphics
+        EXPORT LibGraphicsTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+# 2. Install public headers
+install(DIRECTORY include/LibGraphics
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+# 3. Export targets
+install(EXPORT LibGraphicsTargets
+        FILE LibGraphicsTargets.cmake
+        NAMESPACE LibGraphics::
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibGraphics
+)
+
+# 4. Generate version file
+write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/LibGraphicsConfigVersion.cmake"
+        VERSION 1.0.0
+        COMPATIBILITY SameMajorVersion
+)
+
+# 5. Config file
+configure_package_config_file(
+        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/LibGraphicsConfig.cmake.in
+        ${CMAKE_CURRENT_BINARY_DIR}/LibGraphicsConfig.cmake
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibGraphics
+)
+
+install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/LibGraphicsConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/LibGraphicsConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/LibGraphics
+)
