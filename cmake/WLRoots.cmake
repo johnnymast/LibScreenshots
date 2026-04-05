@@ -11,11 +11,15 @@ set(WLR_SCREENCOPY_XML
         ${CMAKE_CURRENT_SOURCE_DIR}/protocols/wlr-screencopy-unstable-v1.xml
 )
 
-set(GENERATED_PROTO_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
+set(GENERATED_PROTO_DIR ${CMAKE_CURRENT_BINARY_DIR}/wlroots_generated)
 file(MAKE_DIRECTORY ${GENERATED_PROTO_DIR})
 
-set(WLR_SCREENCOPY_HEADER ${GENERATED_PROTO_DIR}/wlr-screencopy-unstable-v1-client-protocol.h)
-set(WLR_SCREENCOPY_CODE   ${GENERATED_PROTO_DIR}/wlr-screencopy-unstable-v1-client-protocol.c)
+set(WLR_SCREENCOPY_HEADER
+        ${GENERATED_PROTO_DIR}/wlr-screencopy-unstable-v1-client-protocol.h
+)
+set(WLR_SCREENCOPY_CODE
+        ${GENERATED_PROTO_DIR}/wlr-screencopy-unstable-v1-client-protocol.c
+)
 
 add_custom_command(
         OUTPUT ${WLR_SCREENCOPY_HEADER}
@@ -33,26 +37,44 @@ add_custom_command(
         DEPENDS ${WLR_SCREENCOPY_XML}
 )
 
+# Pure interne static lib — GEEN PUBLIC interface
 add_library(wlr_screencopy_proto STATIC
         ${WLR_SCREENCOPY_HEADER}
         ${WLR_SCREENCOPY_CODE}
 )
 
-target_include_directories(wlr_screencopy_proto PUBLIC ${GENERATED_PROTO_DIR})
-target_link_libraries(wlr_screencopy_proto PUBLIC ${WAYLAND_CLIENT_LIBRARIES})
+target_include_directories(wlr_screencopy_proto
+        PRIVATE
+        ${GENERATED_PROTO_DIR}
+)
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WAYLAND_SCREEN_COPY)
+target_link_libraries(wlr_screencopy_proto
+        PRIVATE
+        ${WAYLAND_CLIENT_LIBRARIES}
+)
 
-target_include_directories(${PROJECT_NAME} PRIVATE
+# LibScreenshots Wayland backend
+target_compile_definitions(${PROJECT_NAME}
+        PRIVATE
+        HAVE_WAYLAND_SCREEN_COPY
+)
+
+target_include_directories(${PROJECT_NAME}
+        PRIVATE
         ${WAYLAND_CLIENT_INCLUDE_DIRS}
         ${GENERATED_PROTO_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE
+target_link_libraries(${PROJECT_NAME}
+        PRIVATE
         ${WAYLAND_CLIENT_LIBRARIES}
         wlr_screencopy_proto
 )
 
-target_compile_options(${PROJECT_NAME} PRIVATE
+target_compile_options(${PROJECT_NAME}
+        PRIVATE
         ${WAYLAND_CLIENT_CFLAGS_OTHER}
 )
+
+install(TARGETS wlr_screencopy_proto
+        EXPORT LibScreenshotsTargets)
