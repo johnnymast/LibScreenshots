@@ -10,7 +10,7 @@ if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOT
     set(WLROOTS_SCREEN_COPY_SCREENSHOTS ON CACHE BOOL "Enable wlroots backend" FORCE)
 endif()
 
-add_library(${PROJECT_NAME} SHARED
+add_library(${PROJECT_NAME} STATIC
         src/main.cpp
 
         include/private/LibScreenshots/BackendSelector.hpp
