@@ -1,6 +1,7 @@
 @PACKAGE_INIT@
 
 include("${CMAKE_CURRENT_LIST_DIR}/LibScreenshotsTargets.cmake")
+include(CMakeFindDependencyMacro)
 
 # WLRoots backend
 if(@LIBSCREENSHOTS_BACKEND_WLROOTS@)
