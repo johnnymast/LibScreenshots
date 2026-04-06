@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <LibScreenshots/IScreenshotBackend.hpp>
 #include <LibScreenshots/backends/ScreenshotX11.hpp>
 #include <LibScreenshots/backends/ScreenshotWLRoots.hpp>

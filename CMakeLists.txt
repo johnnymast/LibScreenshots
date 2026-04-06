@@ -25,6 +25,8 @@ add_library(${PROJECT_NAME} STATIC
         include/public/LibScreenshots/export.hpp
 )
 
+
+
 if (WINDOWS_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WINDOWS)
     target_sources(${PROJECT_NAME} PRIVATE
@@ -51,6 +53,8 @@ if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
     )
     include(WLRoots OPTIONAL)
 endif()
+
+target_compile_definitions(LibScreenshots PRIVATE LIBSCREENSHOTS_BUILD)
 
 find_package(LibGraphics REQUIRED)
 

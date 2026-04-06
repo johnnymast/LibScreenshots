@@ -6,9 +6,9 @@
 
 namespace LibScreenshots {
 
-    ScreenshotWindows& ScreenshotWindows::instance() {
-        static ScreenshotWindows inst;
-        return inst;
+    ScreenshotWindows& ScreenshotWindows::getInstance() {
+        static ScreenshotWindows instance;
+        return instance;
     }
 
     static LibGraphics::Image HBitmapToImage(HBITMAP hBitmap) {

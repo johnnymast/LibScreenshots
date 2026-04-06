@@ -3,15 +3,11 @@
 #include <LibScreenshots/export.hpp>
 
 namespace LibScreenshots {
-
-    LibGraphics::Image LIBSCREENSHOTS_EXPORT TakeScreenshot()
-    {
+    LIBSCREENSHOTS_EXPORT LibGraphics::Image TakeScreenshot() {
         return Backend().captureScreen().image;
     }
 
-    LibGraphics::Image LIBSCREENSHOTS_EXPORT TakeScreenshot(int x, int y, int width, int height)
-    {
+    LIBSCREENSHOTS_EXPORT LibGraphics::Image TakeScreenshot(int x, int y, int width, int height) {
         return Backend().captureRegion(x, y, width, height).image;
     }
-
 }
