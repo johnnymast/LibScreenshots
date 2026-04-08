@@ -1,7 +1,6 @@
 #include <LibScreenshots/backends/ScreenshotWindows.hpp>
 
 #if HAVE_WINDOWS
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <vector>
 

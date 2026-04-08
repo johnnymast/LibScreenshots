@@ -3,4 +3,4 @@ if (WIN32)
 endif()
 
 find_package(LibGraphics REQUIRED)
-target_link_libraries(LibScreenshots PUBLIC LibGraphics::LibGraphics)
+
