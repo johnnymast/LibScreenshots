@@ -123,7 +123,7 @@ Ga naar de CLion build-map:
 
 Voer uit:
 
-    cmake --install . --prefix "C:/Program Files/LibScreenshots"
+    cmake --install . --config Release --prefix "C:/Program Files/LibScreenshots"
 
 Dit installeert:
 

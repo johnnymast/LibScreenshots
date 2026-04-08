@@ -45,7 +45,7 @@ if (X11_SCREENSHOTS)
             include/private/LibScreenshots/backends/ScreenshotX11.hpp
             src/backends/ScreenshotX11.cpp
     )
-    include(X11 OPTIONAL)
+    include(X11-LibScreenshots OPTIONAL)
 endif()
 
 if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
@@ -54,13 +54,13 @@ if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
             include/private/LibScreenshots/backends/ScreenshotWLRoots.hpp
             src/backends/ScreenshotWLRoots.cpp
     )
-    include(WLRoots OPTIONAL)
+    include(WLRoots-LibScreenshots OPTIONAL)
 endif()
 
-include(LibGraphics-LS)
+include(LibGraphics-LibScreenshots)
 
 target_link_libraries(LibScreenshots
-        PUBLIC
+        PRIVATE
             LibGraphics::LibGraphics
 )
 
