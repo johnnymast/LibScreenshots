@@ -1,14 +1,12 @@
 #pragma once
-
-#include "LibScreenshots/export.hpp"
 #include <LibGraphics/Image.hpp>
 
 namespace LibScreenshots {
-    struct LIBSCREENSHOTS_EXPORT ScreenshotResult {
+    struct ScreenshotResult {
         LibGraphics::Image image;
-        int width;
-        int height;
-        int channels;
+        int width{};
+        int height{};
+        int channels{};
 
         [[nodiscard]] bool isValid() const {
             return image.isValid();

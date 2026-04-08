@@ -3,6 +3,10 @@
 #if HAVE_WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <vector>
+
+using namespace LibScreenshots;
+using std::vector;
 
 namespace LibScreenshots {
 
@@ -11,15 +15,15 @@ namespace LibScreenshots {
         return instance;
     }
 
-    static LibGraphics::Image HBitmapToImage(HBITMAP hBitmap) {
+    static LibGraphics::Image HBitmapToImage(const HBITMAP hBitmap) {
         BITMAP bmp;
         GetObject(hBitmap, sizeof(BITMAP), &bmp);
 
-        int width = bmp.bmWidth;
-        int height = bmp.bmHeight;
-        int channels = 3;
+        const int width = bmp.bmWidth;
+        const int height = bmp.bmHeight;
+        constexpr int channels = 3;
 
-        std::vector<uint8_t> buffer(width * height * channels);
+        vector<uint8_t> buffer(width * height * channels);
 
         BITMAPINFOHEADER bi{};
         bi.biSize = sizeof(BITMAPINFOHEADER);
@@ -33,7 +37,7 @@ namespace LibScreenshots {
         GetDIBits(hdc, hBitmap, 0, height, buffer.data(), (BITMAPINFO*)&bi, DIB_RGB_COLORS);
         ReleaseDC(nullptr, hdc);
 
-        return LibGraphics::Image(width, height, channels, std::move(buffer));
+        return {width, height, channels, std::move(buffer)};
     }
 
     ScreenshotResult ScreenshotWindows::captureScreen() {
@@ -65,5 +69,4 @@ namespace LibScreenshots {
     }
 
 }
-
 #endif

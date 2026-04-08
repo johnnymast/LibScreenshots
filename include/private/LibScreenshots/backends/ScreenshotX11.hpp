@@ -1,7 +1,6 @@
 #pragma once
 
 #if HAVE_X11
-
 #include <LibScreenshots/ScreenshotResult.hpp>
 #include <LibScreenshots/IScreenshotBackend.hpp>
 

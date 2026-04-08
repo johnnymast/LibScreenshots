@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.16)
-project(LibScreenshots)
+project(LibScreenshots VERSION 1.0 LANGUAGES CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+# Ensure at least one backend is enabled
 if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOTS))
     message(FATAL_ERROR
             "No screenshot backend selected. Enable at least one of: "
@@ -14,54 +14,65 @@ if(NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOT
     )
 endif()
 
-add_library(${PROJECT_NAME} STATIC
-        src/main.cpp
 
-        include/private/LibScreenshots/BackendSelector.hpp
-        include/private/LibScreenshots/ScreenshotResult.hpp
-
-        include/public/LibScreenshots/IScreenshotBackend.hpp
+# -----------------------------
+# Build the SHARED library
+# -----------------------------
+add_library(${PROJECT_NAME} SHARED
+        # Public API
+        include/public/LibScreenshots/BackendSelector.hpp
         include/public/LibScreenshots/LibScreenshots.hpp
-        include/public/LibScreenshots/export.hpp
+
+        # Private API
+        include/private/LibScreenshots/backends/ScreenshotWindows.hpp # Kan uit ?
+        include/private/LibScreenshots/backends/ScreenshotWLRoots.hpp # Kan uit ?
+        include/private/LibScreenshots/backends/ScreenshotX11.hpp # Kan uit ?
+
+        include/private/LibScreenshots/IScreenshotBackend.hpp
+        include/private/LibScreenshots/ScreenshotResult.hpp
+        include/private/LibScreenshots/export.hpp
+
+        src/backends/ScreenshotWindows.cpp
+        src/backends/ScreenshotWLRoots.cpp
+        src/backends/ScreenshotX11.cpp
+
+        src/LibScreenshots.cpp
+
 )
 
 
-
+target_compile_definitions(LibScreenshots PRIVATE LIBSCREENSHOTS_EXPORTS)
+# -----------------------------
+# Backends
+# -----------------------------
 if (WINDOWS_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WINDOWS)
-    target_sources(${PROJECT_NAME} PRIVATE
-            include/private/LibScreenshots/backends/ScreenshotWindows.hpp
-            src/backends/ScreenshotWindows.cpp
-    )
+#    target_sources(${PROJECT_NAME} PRIVATE
+#            include/private/LibScreenshots/backends/ScreenshotWindows.hpp
+#            src/backends/ScreenshotWindows.cpp
+#    )
     include(Windows OPTIONAL)
 endif()
 
 if (X11_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_X11)
-    target_sources(${PROJECT_NAME} PRIVATE
-            include/private/LibScreenshots/backends/ScreenshotX11.hpp
-            src/backends/ScreenshotX11.cpp
-    )
+#    target_sources(${PROJECT_NAME} PRIVATE
+#            include/private/LibScreenshots/backends/ScreenshotX11.hpp
+#            src/backends/ScreenshotX11.cpp
+#    )
     include(X11 OPTIONAL)
 endif()
 
 if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WLROOTS_SCREEN_COPY)
-    target_sources(${PROJECT_NAME} PRIVATE
-            include/private/LibScreenshots/backends/ScreenshotWLRoots.hpp
-            src/backends/ScreenshotWLRoots.cpp
-    )
+#    target_sources(${PROJECT_NAME} PRIVATE
+#            include/private/LibScreenshots/backends/ScreenshotWLRoots.hpp
+#            src/backends/ScreenshotWLRoots.cpp
+#    )
     include(WLRoots OPTIONAL)
 endif()
 
-target_compile_definitions(LibScreenshots PRIVATE LIBSCREENSHOTS_BUILD)
-
-find_package(LibGraphics REQUIRED)
-
-target_link_libraries(${PROJECT_NAME}
-        PUBLIC
-        LibGraphics::LibGraphics
-)
+include(LibGraphics-LS)
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
@@ -72,6 +83,9 @@ target_include_directories(${PROJECT_NAME}
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
+# -----------------------------
+# Install + Export
+# -----------------------------
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 

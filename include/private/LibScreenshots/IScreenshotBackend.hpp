@@ -8,7 +8,6 @@ namespace LibScreenshots {
         virtual ~IScreenshotBackend() = default;
 
         virtual ScreenshotResult captureScreen() = 0;
-
         virtual ScreenshotResult captureRegion(int x, int y, int width, int height) = 0;
     };
 };

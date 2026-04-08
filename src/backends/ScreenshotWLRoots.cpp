@@ -1,12 +1,11 @@
 #include "LibScreenshots/backends/ScreenshotWLRoots.hpp"
 
+#if HAVE_WLROOTS_SCREEN_COPY
 #include <cstring>
 #include <algorithm>
 #include <sys/mman.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <cstdlib>
 
 namespace LibScreenshots {
 
@@ -265,4 +264,5 @@ void ScreenshotWLRoots::frameDamage(void*, zwlr_screencopy_frame_v1*, uint32_t, 
 void ScreenshotWLRoots::frameLinuxDmabuf(void*, zwlr_screencopy_frame_v1*, uint32_t, uint32_t, uint32_t) {}
 void ScreenshotWLRoots::frameBufferDone(void*, zwlr_screencopy_frame_v1*) {}
 
-} // namespace LibScreenshots
+}
+#endif

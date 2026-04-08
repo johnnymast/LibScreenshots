@@ -1,7 +1,6 @@
 #pragma once
 
 #if HAVE_WLROOTS_SCREEN_COPY
-
 #include <vector>
 #include <cstddef>
 #include <wayland-client.h>
