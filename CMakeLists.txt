@@ -57,12 +57,20 @@ if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
     include(WLRoots-LibScreenshots OPTIONAL)
 endif()
 
-include(LibGraphics-LibScreenshots)
+if (SPARKLE_SUPERBUILD)
+    message(STATUS "❤️  ${PROJECT_NAME} USING Superbuild")
+    target_link_libraries(LibScreenshots PUBLIC LibGraphics)
+else()
+    find_package(LibGraphics REQUIRED)
 
-target_link_libraries(LibScreenshots
-        PRIVATE
+    target_link_libraries(LibScreenshots
+            PRIVATE
             LibGraphics::LibGraphics
-)
+    )
+endif()
+
+
+
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC

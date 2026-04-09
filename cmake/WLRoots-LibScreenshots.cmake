@@ -1,4 +1,4 @@
-message(STATUS "🔧 Loading Wayland backend configuration")
+message(STATUS "  🔨 Linking WLRoots")
 
 find_package(PkgConfig REQUIRED)
 

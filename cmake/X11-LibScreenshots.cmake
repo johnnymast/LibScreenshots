@@ -1,3 +1,4 @@
+message(STATUS "  🔨 Linking X11")
 if(X11_SCREENSHOTS)
     message(STATUS "✅  Configuring LibScreenshots to use X11 backend")
 
