@@ -8,14 +8,13 @@
 using namespace LibScreenshots;
 
 namespace {
-
-    static void check(bool ok, const char* msg) {
+    void check(bool ok, const char* msg) {
         if (!ok) {
             throw std::runtime_error(msg);
         }
     }
 
-    static void getScreenResolution(int& width, int& height) {
+    void getScreenResolution(int& width, int& height) {
         HDC desktopDC = GetDC(nullptr);
         if (!desktopDC)
             throw std::runtime_error("Failed to get DC for screen resolution");
@@ -29,7 +28,7 @@ namespace {
             throw std::runtime_error("Failed to get valid screen dimensions");
     }
 
-    static LibGraphics::Image captureRegionInternal(int x, int y, int width, int height) {
+    LibGraphics::Image captureRegionInternal(int x, int y, int width, int height) {
         if (width <= 0 || height <= 0)
             throw std::runtime_error("Width and height must be positive");
         if (x < 0 || y < 0)
@@ -119,7 +118,6 @@ namespace {
 
         return result;
     }
-
 }
 
 namespace LibScreenshots {
@@ -143,7 +141,5 @@ namespace LibScreenshots {
         result.image = captureRegionInternal(x, y, width, height);
         return result;
     }
-
 }
-
 #endif
