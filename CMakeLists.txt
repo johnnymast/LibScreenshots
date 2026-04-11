@@ -36,7 +36,7 @@ if (WINDOWS_SCREENSHOTS)
             include/private/LibScreenshots/backends/ScreenshotWindows.hpp
             src/backends/ScreenshotWindows.cpp
     )
-    include(Windows OPTIONAL)
+    include(Windows-LibScreenshots OPTIONAL)
 endif()
 
 if (X11_SCREENSHOTS)

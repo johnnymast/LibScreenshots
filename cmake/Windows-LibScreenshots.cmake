@@ -1,5 +1,5 @@
 message(STATUS "  🔨 Linking Windows")
 if(WINDOWS_SCREENSHOTS)
     message(STATUS "✅  Configuring LibScreenshots to use Windows backend")
-    target_link_libraries(${PROJECT_NAME} PRIVATE user32 gdi32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE d3d11 dxgi)
 endif()
