@@ -1,145 +1,120 @@
 #include <LibScreenshots/backends/ScreenshotWindows.hpp>
+#include <LibScreenshots/exceptions/ScreenshotException.hpp>
 
-#if HAVE_WINDOWS
-#include <windows.h>
-#include <vector>
-#include <stdexcept>
-
-using namespace LibScreenshots;
-
-namespace {
-    void check(bool ok, const char* msg) {
-        if (!ok) {
-            throw std::runtime_error(msg);
-        }
-    }
-
-    void getScreenResolution(int& width, int& height) {
-        HDC desktopDC = GetDC(nullptr);
-        if (!desktopDC)
-            throw std::runtime_error("Failed to get DC for screen resolution");
-
-        width = GetDeviceCaps(desktopDC, HORZRES);
-        height = GetDeviceCaps(desktopDC, VERTRES);
-
-        ReleaseDC(nullptr, desktopDC);
-
-        if (width <= 0 || height <= 0)
-            throw std::runtime_error("Failed to get valid screen dimensions");
-    }
-
-    LibGraphics::Image captureRegionInternal(int x, int y, int width, int height) {
-        if (width <= 0 || height <= 0)
-            throw std::runtime_error("Width and height must be positive");
-        if (x < 0 || y < 0)
-            throw std::runtime_error("Coordinates must be non-negative");
-
-        int screenW, screenH;
-        getScreenResolution(screenW, screenH);
-        if (x + width > screenW || y + height > screenH)
-            throw std::runtime_error("Capture region is outside screen bounds");
-
-        HDC desktopDC = GetDC(nullptr);
-        if (!desktopDC)
-            throw std::runtime_error("Failed to get DC");
-
-        HDC memDC = nullptr;
-        HBITMAP hBitmap = nullptr;
-        HGDIOBJ oldBitmap = nullptr;
-
-        LibGraphics::Image result;
-
-        try {
-            memDC = CreateCompatibleDC(desktopDC);
-            check(memDC != nullptr, "Failed to create compatible DC");
-
-            hBitmap = CreateCompatibleBitmap(desktopDC, width, height);
-            check(hBitmap != nullptr, "Failed to create compatible bitmap");
-
-            oldBitmap = SelectObject(memDC, hBitmap);
-            check(oldBitmap != nullptr, "Failed to select bitmap into DC");
-
-            int rop = SRCCOPY | CAPTUREBLT;
-            check(BitBlt(memDC, 0, 0, width, height, desktopDC, x, y, rop) != 0, "BitBlt failed");
-
-            BITMAPINFO bmi{};
-            bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-            bmi.bmiHeader.biWidth = width;
-            bmi.bmiHeader.biHeight = -height;
-            bmi.bmiHeader.biPlanes = 1;
-            bmi.bmiHeader.biBitCount = 32;
-            bmi.bmiHeader.biCompression = BI_RGB;
-
-            std::vector<uint8_t> bgra(width * height * 4);
-            int scanLines = GetDIBits(
-                memDC,
-                hBitmap,
-                0,
-                height,
-                bgra.data(),
-                &bmi,
-                DIB_RGB_COLORS
-            );
-            check(scanLines == height, "GetDIBits failed");
-
-            const int channels = 3;
-            std::vector<uint8_t> rgb(width * height * channels);
-
-            for (int i = 0; i < width * height; ++i) {
-                uint8_t b = bgra[i * 4 + 0];
-                uint8_t g = bgra[i * 4 + 1];
-                uint8_t r = bgra[i * 4 + 2];
-                rgb[i * 3 + 0] = r;
-                rgb[i * 3 + 1] = g;
-                rgb[i * 3 + 2] = b;
-            }
-
-            result = LibGraphics::Image(width, height, channels, std::move(rgb));
-        } catch (...) {
-            if (oldBitmap)
-                SelectObject(memDC, oldBitmap);
-            if (hBitmap)
-                DeleteObject(hBitmap);
-            if (memDC)
-                DeleteDC(memDC);
-            if (desktopDC)
-                ReleaseDC(nullptr, desktopDC);
-            throw;
-        }
-
-        if (oldBitmap)
-            SelectObject(memDC, oldBitmap);
-        if (hBitmap)
-            DeleteObject(hBitmap);
-        if (memDC)
-            DeleteDC(memDC);
-        if (desktopDC)
-            ReleaseDC(nullptr, desktopDC);
-
-        return result;
-    }
-}
+using LibScreenshots::Exceptions::ScreenshotException;
 
 namespace LibScreenshots {
+    static void ThrowError(const char *msg) {
+        throw ScreenshotException(msg, "ScreenshotWindows");
+    }
 
-    ScreenshotWindows& ScreenshotWindows::getInstance() {
+    IScreenshotBackend &ScreenshotWindows::getInstance() {
         static ScreenshotWindows instance;
         return instance;
     }
 
     ScreenshotResult ScreenshotWindows::captureScreen() {
-        int w, h;
-        getScreenResolution(w, h);
+        int w = GetSystemMetrics(SM_CXSCREEN);
+        int h = GetSystemMetrics(SM_CYSCREEN);
 
-        ScreenshotResult result;
-        result.image = captureRegionInternal(0, 0, w, h);
-        return result;
+        if (w <= 0 || h <= 0)
+            ThrowError("GetSystemMetrics failed");
+
+        return captureDIB(0, 0, w, h);
     }
 
     ScreenshotResult ScreenshotWindows::captureRegion(int x, int y, int width, int height) {
+        int screenW = GetSystemMetrics(SM_CXSCREEN);
+        int screenH = GetSystemMetrics(SM_CYSCREEN);
+
+        if (screenW <= 0 || screenH <= 0)
+            ThrowError("GetSystemMetrics failed");
+
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x + width > screenW) width = screenW - x;
+        if (y + height > screenH) height = screenH - y;
+
+        if (width <= 0 || height <= 0)
+            ThrowError("Requested region invalid");
+
+        return captureDIB(x, y, width, height);
+    }
+
+    ScreenshotResult ScreenshotWindows::captureDIB(int x, int y, int width, int height) {
+        HDC screenDC = GetDC(nullptr);
+        if (!screenDC)
+            ThrowError("GetDC failed");
+
+        BITMAPINFO bmi{};
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = width;
+        bmi.bmiHeader.biHeight = -height; // top-down
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 32;
+        bmi.bmiHeader.biCompression = BI_RGB;
+
+        void *dibPixels = nullptr;
+
+        HBITMAP dib = CreateDIBSection(
+            screenDC,
+            &bmi,
+            DIB_RGB_COLORS,
+            &dibPixels,
+            nullptr,
+            0
+        );
+
+        if (!dib || !dibPixels) {
+            ReleaseDC(nullptr, screenDC);
+            ThrowError("CreateDIBSection failed");
+        }
+
+        HDC memDC = CreateCompatibleDC(screenDC);
+        if (!memDC) {
+            DeleteObject(dib);
+            ReleaseDC(nullptr, screenDC);
+            ThrowError("CreateCompatibleDC failed");
+        }
+
+        HGDIOBJ old = SelectObject(memDC, dib);
+        if (!old) {
+            DeleteDC(memDC);
+            DeleteObject(dib);
+            ReleaseDC(nullptr, screenDC);
+            ThrowError("SelectObject failed");
+        }
+
+        if (!BitBlt(memDC, 0, 0, width, height, screenDC, x, y, SRCCOPY | CAPTUREBLT)) {
+            SelectObject(memDC, old);
+            DeleteDC(memDC);
+            DeleteObject(dib);
+            ReleaseDC(nullptr, screenDC);
+            ThrowError("BitBlt failed");
+        }
+
+        // Pixelbuffer kopiëren
+        size_t totalBytes = static_cast<size_t>(width) * height * 4;
+        std::vector<uint8_t> pixels(totalBytes);
+        memcpy(pixels.data(), dibPixels, totalBytes);
+
+        // Cleanup
+        SelectObject(memDC, old);
+        DeleteDC(memDC);
+        DeleteObject(dib);
+        ReleaseDC(nullptr, screenDC);
+
+        // BGRA → RGBA (GDI levert altijd BGRA)
+        for (size_t i = 0; i < totalBytes; i += 4) {
+            std::swap(pixels[i + 0], pixels[i + 2]); // B ↔ R
+        }
+
         ScreenshotResult result;
-        result.image = captureRegionInternal(x, y, width, height);
+        result.width = width;
+        result.height = height;
+        result.channels = 4;
+        result.image = LibGraphics::Image(width, height, 4, std::move(pixels));
+
         return result;
     }
 }
-#endif
