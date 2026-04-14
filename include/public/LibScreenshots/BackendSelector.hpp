@@ -1,9 +1,18 @@
 #pragma once
 
 #include <LibScreenshots/IScreenshotBackend.hpp>
+
+#if HAVE_X11
 #include <LibScreenshots/backends/ScreenshotX11.hpp>
+#endif
+
+#if HAVE_WLROOTS_SCREEN_COPY
 #include <LibScreenshots/backends/ScreenshotWLRoots.hpp>
+#endif
+
+#if HAVE_WINDOWS
 #include <LibScreenshots/backends/ScreenshotWindows.hpp>
+#endif
 
 namespace LibScreenshots {
 
