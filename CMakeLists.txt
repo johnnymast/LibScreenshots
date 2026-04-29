@@ -7,10 +7,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Ensure at least one backend is enabled
-if (NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_SCREEN_COPY_SCREENSHOTS))
+if (NOT (WINDOWS_SCREENSHOTS OR X11_SCREENSHOTS OR WLROOTS_PLATFORM))
     message(FATAL_ERROR
             "No screenshot backend selected. Enable at least one of: "
-            "WINDOWS_SCREENSHOTS, X11_SCREENSHOTS, WLROOTS_SCREEN_COPY_SCREENSHOTS."
+            "WINDOWS_SCREENSHOTS, X11_SCREENSHOTS, WLROOTS_PLATFORM."
     )
 endif()
 
@@ -50,7 +50,7 @@ if (X11_SCREENSHOTS)
     include(X11-LibScreenshots OPTIONAL)
 endif()
 
-if (WLROOTS_SCREEN_COPY_SCREENSHOTS)
+if (WLROOTS_PLATFORM)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WLROOTS_SCREEN_COPY)
     target_sources(${PROJECT_NAME} PRIVATE
             include/private/LibScreenshots/backends/ScreenshotWLRoots.hpp

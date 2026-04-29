@@ -1,6 +1,7 @@
 message(STATUS "  🔨 Linking WLRoots")
 
 find_package(PkgConfig REQUIRED)
+find_package(OpenCV REQUIRED)
 
 pkg_check_modules(WAYLAND_CLIENT REQUIRED wayland-client)
 pkg_check_modules(WAYLAND_PROTOCOLS REQUIRED wayland-protocols)
@@ -69,6 +70,7 @@ target_link_libraries(${PROJECT_NAME}
         PRIVATE
         ${WAYLAND_CLIENT_LIBRARIES}
         wlr_screencopy_proto
+        ${OpenCV_LIBS}
 )
 
 target_compile_options(${PROJECT_NAME}
