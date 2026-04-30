@@ -6,6 +6,9 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <chrono>
+
+using namespace std::chrono;
 
 namespace LibScreenshots {
 
@@ -100,7 +103,7 @@ void ScreenshotWLRoots::registryAdd(
 
 void ScreenshotWLRoots::registryRemove(void*, wl_registry*, uint32_t) {}
 
-bool ScreenshotWLRoots::captureInternal(wl_output* output) {
+    bool ScreenshotWLRoots::captureInternal(wl_output* output) {
     m_buffer.clear();
     m_frame_done = false;
 
@@ -118,9 +121,18 @@ bool ScreenshotWLRoots::captureInternal(wl_output* output) {
 
     zwlr_screencopy_frame_v1_add_listener(m_frame, &FRAME_LISTENER, this);
 
-    int spins = 0;
-    while (!m_frame_done && spins++ < 50)
-        wl_display_roundtrip(m_display);
+    auto start = steady_clock::now();
+    auto timeout = milliseconds(500);
+
+    while (!m_frame_done) {
+        wl_display_flush(m_display);
+
+        if (wl_display_dispatch(m_display) < 0)
+            break;
+
+        if (steady_clock::now() - start > timeout)
+            break;
+    }
 
     return !m_buffer.empty();
 }
