@@ -259,6 +259,7 @@ void ScreenshotWLRoots::frameReady(
     auto self = static_cast<ScreenshotWLRoots*>(data);
 
     if (self->m_shm_data && self->m_shm_size > 0) {
+        // FIXME: SEGV
         self->m_buffer.resize(self->m_shm_size);
         std::memcpy(self->m_buffer.data(), self->m_shm_data, self->m_shm_size);
     }
