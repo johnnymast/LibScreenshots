@@ -3,6 +3,9 @@
 #if HAVE_WLROOTS_SCREEN_COPY
 #include <vector>
 #include <cstddef>
+#include <cstdint>
+#include <chrono>
+#include <mutex>
 #include <wayland-client.h>
 #include "wlr-screencopy-unstable-v1-client-protocol.h"
 
@@ -41,17 +44,38 @@ namespace LibScreenshots {
         static void frameBufferDone(void *data, zwlr_screencopy_frame_v1 *frame);
 
     private:
+        struct Output {
+            uint32_t name = 0;
+            wl_output *proxy = nullptr;
+        };
+
         ScreenshotWLRoots();
 
         ~ScreenshotWLRoots();
 
         bool captureInternal(wl_output *output);
 
+        /**
+         * Pumps the display until the frame completes or the deadline passes.
+         * Uses prepare_read/poll instead of wl_display_dispatch so the timeout
+         * is actually honoured; a plain dispatch blocks indefinitely and a
+         * silent compositor would hang the caller forever.
+         */
+        bool dispatchUntilDone(std::chrono::milliseconds timeout);
+
+        /** Allocates the shm backing store and sends the copy request. */
+        void allocateAndCopy();
+
+        void resetFrame();
+
+        void releaseBuffer();
+
         wl_display *m_display = nullptr;
         wl_registry *m_registry = nullptr;
 
         zwlr_screencopy_manager_v1 *m_manager = nullptr;
         zwlr_screencopy_frame_v1 *m_frame = nullptr;
+        uint32_t m_manager_version = 0;
 
         wl_shm *m_shm = nullptr;
         wl_shm_pool *m_shm_pool = nullptr;
@@ -59,14 +83,31 @@ namespace LibScreenshots {
         void *m_shm_data = nullptr;
         std::size_t m_shm_size = 0;
 
-        std::vector<wl_output *> m_outputs;
+        std::vector<Output> m_outputs;
+        wl_output *m_active_output = nullptr;
 
         std::vector<uint8_t> m_buffer;
         uint32_t m_width = 0;
         uint32_t m_height = 0;
         uint32_t m_stride = 0;
+        uint32_t m_format = 0;
 
+        /** True when the shm format stores blue in the first byte (X/ARGB8888). */
+        bool m_blue_first = true;
+
+        bool m_have_buffer_params = false;
         bool m_frame_done = false;
+        bool m_frame_failed = false;
+
+        /**
+         * A single wl_display connection and one set of frame/buffer members are
+         * shared by every caller, but TakeScreenshot() is reached from both the
+         * plugin pipeline (main thread) and the IPC read thread via
+         * Chat::WipeChat(). Without this the two interleave inside frameReady
+         * and frameBuffer and memcpy from a just-munmapped mapping. Recursive
+         * because captureRegion() delegates to captureScreen().
+         */
+        std::recursive_mutex m_mutex;
     };
 }
 #endif
