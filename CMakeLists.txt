@@ -31,7 +31,6 @@ add_library(${PROJECT_NAME} SHARED
 
 target_compile_definitions(LibScreenshots PRIVATE LIBSCREENSHOTS_EXPORTS)
 
-
 if (WINDOWS_SCREENSHOTS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE HAVE_WINDOWS)
     target_sources(${PROJECT_NAME} PRIVATE
@@ -70,9 +69,6 @@ else()
             LibGraphics::LibGraphics
     )
 endif()
-
-
-
 
 target_include_directories(${PROJECT_NAME}
         PUBLIC
